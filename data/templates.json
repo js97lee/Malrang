@@ -1,0 +1,31 @@
+[
+  {
+    "id": "highlight-reel",
+    "name": "하이라이트 영상",
+    "description": "이번 달의 특별한 순간들을 모아서",
+    "thumbnail": "/templates/highlight.jpg",
+    "category": "highlight"
+  },
+  {
+    "id": "anniversary",
+    "name": "기념일 영상",
+    "description": "특별한 날을 기념하는 영상",
+    "thumbnail": "/templates/anniversary.jpg",
+    "category": "anniversary"
+  },
+  {
+    "id": "memorial",
+    "name": "추모 영상",
+    "description": "소중한 추억을 담은 영상",
+    "thumbnail": "/templates/memorial.jpg",
+    "category": "memorial"
+  },
+  {
+    "id": "last-message",
+    "name": "마지막 메시지",
+    "description": "남기고 싶은 마지막 이야기",
+    "thumbnail": "/templates/message.jpg",
+    "category": "message"
+  }
+]
+
