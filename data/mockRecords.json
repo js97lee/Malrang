@@ -1,57 +1,332 @@
 [
   {
     "id": "1",
-    "date": "2025-01-15",
+    "date": "2025-11-15",
     "question": "오늘 가장 기억에 남는 장면은 무엇인가요?",
     "answer": "친구들과 함께한 저녁 식사가 정말 따뜻했어요. 오랜만에 만나서 수다를 나누며 웃었던 시간이 소중했습니다.",
-    "images": [],
+    "images": ["/card1.png", "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=800&h=1000&fit=crop"],
     "tags": ["친구", "식사", "추억"],
     "emotions": ["joy", "love"],
     "summary": "친구들과의 따뜻한 저녁 시간",
-    "createdAt": "2025-01-15T20:30:00Z"
+    "createdAt": "2025-11-15T20:30:00Z"
   },
   {
     "id": "2",
-    "date": "2025-01-14",
+    "date": "2025-11-14",
     "question": "오늘 느꼈던 감정을 한 단어로 표현한다면?",
     "answer": "평온함. 아무 일도 없었지만 그 자체가 행복이었어요.",
-    "images": [],
+    "images": ["/card2.png", "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=1000&fit=crop"],
     "tags": ["평온", "일상"],
     "emotions": ["peace"],
     "summary": "평온한 하루",
-    "createdAt": "2025-01-14T19:00:00Z"
+    "createdAt": "2025-11-14T19:00:00Z"
   },
   {
     "id": "3",
-    "date": "2025-01-13",
+    "date": "2025-11-13",
     "question": "오늘의 하이라이트를 사진과 함께 기록해보세요",
     "answer": "카페에서 읽던 책을 마지막 페이지까지 읽었어요. 정말 감동적인 결말이었습니다.",
-    "images": [],
+    "images": ["/card3.png", "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=1000&fit=crop"],
     "tags": ["독서", "카페"],
     "emotions": ["joy", "surprise"],
     "summary": "책을 완독한 날",
-    "createdAt": "2025-01-13T18:15:00Z"
+    "createdAt": "2025-11-13T18:15:00Z"
   },
   {
     "id": "4",
-    "date": "2025-01-12",
+    "date": "2025-11-12",
     "question": "오늘 하루는 어떠셨나요?",
     "answer": "운동을 하면서 땀을 많이 흘렸어요. 몸이 가벼워진 기분이 들었습니다.",
-    "images": [],
+    "images": ["/card4.png", "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=1000&fit=crop"],
     "tags": ["운동", "건강"],
     "emotions": ["excitement", "joy"],
     "summary": "운동한 하루",
-    "createdAt": "2025-01-12T17:00:00Z"
+    "createdAt": "2025-11-12T17:00:00Z"
   },
   {
     "id": "5",
-    "date": "2025-01-11",
+    "date": "2025-11-11",
     "question": "오늘 가장 기억에 남는 순간은?",
     "answer": "가족과 함께 저녁을 먹으면서 오늘 하루를 이야기했어요.",
-    "images": [],
+    "images": ["/card5.png", "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=1000&fit=crop"],
     "tags": ["가족", "식사"],
     "emotions": ["love", "peace"],
     "summary": "가족과의 저녁 시간",
-    "createdAt": "2025-01-11T19:30:00Z"
+    "createdAt": "2025-11-11T19:30:00Z"
+  },
+  {
+    "id": "6",
+    "date": "2025-10-20",
+    "question": "오늘 하루는 어떠셨나요?",
+    "answer": "가을 단풍을 보러 산에 갔어요. 빨간 단풍이 정말 아름다웠습니다.",
+    "images": ["/card1.png", "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=1000&fit=crop"],
+    "tags": ["가을", "단풍", "산"],
+    "emotions": ["joy", "peace", "excitement"],
+    "summary": "단풍 구경한 날",
+    "createdAt": "2025-10-20T16:00:00Z"
+  },
+  {
+    "id": "7",
+    "date": "2025-10-15",
+    "question": "오늘 가장 기억에 남는 순간은?",
+    "answer": "새로운 카페를 발견했어요. 분위기가 정말 좋았습니다.",
+    "images": ["/card2.png", "https://images.unsplash.com/photo-1501339847302-ac426a4c7c6f?w=800&h=1000&fit=crop"],
+    "tags": ["카페", "발견"],
+    "emotions": ["joy", "surprise"],
+    "summary": "새로운 카페 발견",
+    "createdAt": "2025-10-15T14:30:00Z"
+  },
+  {
+    "id": "8",
+    "date": "2025-10-10",
+    "question": "오늘 느꼈던 감정을 한 단어로 표현한다면?",
+    "answer": "뿌듯함. 오랫동안 준비했던 프로젝트를 마무리했어요.",
+    "images": ["/card3.png", "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=1000&fit=crop"],
+    "tags": ["프로젝트", "완료"],
+    "emotions": ["joy", "excitement"],
+    "summary": "프로젝트 완료",
+    "createdAt": "2025-10-10T18:00:00Z"
+  },
+  {
+    "id": "9",
+    "date": "2025-10-05",
+    "question": "오늘의 하이라이트를 사진과 함께 기록해보세요",
+    "answer": "친구와 함께 영화를 봤어요. 정말 재미있었습니다.",
+    "images": ["/card4.png", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&h=1000&fit=crop"],
+    "tags": ["친구", "영화"],
+    "emotions": ["joy", "love"],
+    "summary": "친구와 영화 관람",
+    "createdAt": "2025-10-05T21:00:00Z"
+  },
+  {
+    "id": "10",
+    "date": "2025-09-25",
+    "question": "오늘 하루는 어떠셨나요?",
+    "answer": "요리를 배웠어요. 처음 만든 요리가 생각보다 맛있었습니다.",
+    "images": ["/card5.png", "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&h=1000&fit=crop"],
+    "tags": ["요리", "배움"],
+    "emotions": ["joy", "surprise"],
+    "summary": "요리 배운 날",
+    "createdAt": "2025-09-25T19:00:00Z"
+  },
+  {
+    "id": "11",
+    "date": "2025-09-20",
+    "question": "오늘 가장 기억에 남는 순간은?",
+    "answer": "해변에서 일몰을 봤어요. 정말 아름다운 풍경이었습니다.",
+    "images": ["/card1.png", "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&h=1000&fit=crop"],
+    "tags": ["해변", "일몰"],
+    "emotions": ["peace", "love"],
+    "summary": "해변 일몰 감상",
+    "createdAt": "2025-09-20T18:30:00Z"
+  },
+  {
+    "id": "12",
+    "date": "2025-09-15",
+    "question": "오늘 느꼈던 감정을 한 단어로 표현한다면?",
+    "answer": "설렘. 내일 여행을 떠나요. 기대가 됩니다.",
+    "images": ["/card2.png", "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=1000&fit=crop"],
+    "tags": ["여행", "기대"],
+    "emotions": ["excitement", "joy"],
+    "summary": "여행 전날",
+    "createdAt": "2025-09-15T20:00:00Z"
+  },
+  {
+    "id": "13",
+    "date": "2025-09-10",
+    "question": "오늘의 하이라이트를 사진과 함께 기록해보세요",
+    "answer": "독서 모임에 참여했어요. 좋은 책을 추천받았습니다.",
+    "images": ["/card3.png", "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=1000&fit=crop"],
+    "tags": ["독서", "모임"],
+    "emotions": ["joy", "love"],
+    "summary": "독서 모임 참여",
+    "createdAt": "2025-09-10T19:00:00Z"
+  },
+  {
+    "id": "14",
+    "date": "2025-08-28",
+    "question": "오늘 하루는 어떠셨나요?",
+    "answer": "수영을 했어요. 물이 시원해서 정말 좋았습니다.",
+    "images": ["/card4.png", "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=800&h=1000&fit=crop"],
+    "tags": ["수영", "여름"],
+    "emotions": ["joy", "excitement"],
+    "summary": "수영한 날",
+    "createdAt": "2025-08-28T16:00:00Z"
+  },
+  {
+    "id": "15",
+    "date": "2025-08-22",
+    "question": "오늘 가장 기억에 남는 순간은?",
+    "answer": "아이스크림을 먹었어요. 더운 날씨에 정말 시원했습니다.",
+    "images": ["/card5.png", "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800&h=1000&fit=crop"],
+    "tags": ["아이스크림", "여름"],
+    "emotions": ["joy"],
+    "summary": "아이스크림 먹은 날",
+    "createdAt": "2025-08-22T15:00:00Z"
+  },
+  {
+    "id": "16",
+    "date": "2025-08-18",
+    "question": "오늘 느꼈던 감정을 한 단어로 표현한다면?",
+    "answer": "평온함. 집에서 쉬면서 책을 읽었어요.",
+    "images": ["/card1.png", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop"],
+    "tags": ["휴식", "독서"],
+    "emotions": ["peace"],
+    "summary": "집에서 휴식",
+    "createdAt": "2025-08-18T17:00:00Z"
+  },
+  {
+    "id": "17",
+    "date": "2025-08-12",
+    "question": "오늘의 하이라이트를 사진과 함께 기록해보세요",
+    "answer": "야외에서 피크닉을 했어요. 날씨가 정말 좋았습니다.",
+    "images": ["/card2.png", "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=1000&fit=crop"],
+    "tags": ["피크닉", "야외"],
+    "emotions": ["joy", "love", "peace"],
+    "summary": "야외 피크닉",
+    "createdAt": "2025-08-12T14:00:00Z"
+  },
+  {
+    "id": "18",
+    "date": "2025-07-30",
+    "question": "오늘 하루는 어떠셨나요?",
+    "answer": "콘서트를 봤어요. 라이브 공연이 정말 멋졌습니다.",
+    "images": ["/card3.png", "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=1000&fit=crop"],
+    "tags": ["콘서트", "음악"],
+    "emotions": ["excitement", "joy"],
+    "summary": "콘서트 관람",
+    "createdAt": "2025-07-30T21:00:00Z"
+  },
+  {
+    "id": "19",
+    "date": "2025-07-25",
+    "question": "오늘 가장 기억에 남는 순간은?",
+    "answer": "친구 생일 파티에 참석했어요. 모두 함께 즐거운 시간을 보냈습니다.",
+    "images": ["/card4.png", "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=1000&fit=crop"],
+    "tags": ["생일", "파티", "친구"],
+    "emotions": ["joy", "love", "excitement"],
+    "summary": "친구 생일 파티",
+    "createdAt": "2025-07-25T20:00:00Z"
+  },
+  {
+    "id": "20",
+    "date": "2025-07-20",
+    "question": "오늘 느꼈던 감정을 한 단어로 표현한다면?",
+    "answer": "뿌듯함. 오늘 하루 많은 일을 끝냈어요.",
+    "images": ["/card5.png", "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=1000&fit=crop"],
+    "tags": ["성취", "일"],
+    "emotions": ["joy", "excitement"],
+    "summary": "바쁜 하루 마무리",
+    "createdAt": "2025-07-20T19:00:00Z"
+  },
+  {
+    "id": "21",
+    "date": "2025-06-28",
+    "question": "오늘의 하이라이트를 사진과 함께 기록해보세요",
+    "answer": "박물관을 관람했어요. 역사를 배울 수 있어서 좋았습니다.",
+    "images": ["/card1.png", "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=1000&fit=crop"],
+    "tags": ["박물관", "학습"],
+    "emotions": ["joy", "surprise"],
+    "summary": "박물관 관람",
+    "createdAt": "2025-06-28T16:00:00Z"
+  },
+  {
+    "id": "22",
+    "date": "2025-06-22",
+    "question": "오늘 하루는 어떠셨나요?",
+    "answer": "자전거를 타고 공원을 돌았어요. 바람이 시원했습니다.",
+    "images": ["/card2.png", "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=1000&fit=crop"],
+    "tags": ["자전거", "운동", "공원"],
+    "emotions": ["joy", "excitement"],
+    "summary": "자전거 타기",
+    "createdAt": "2025-06-22T17:00:00Z"
+  },
+  {
+    "id": "23",
+    "date": "2025-06-18",
+    "question": "오늘 가장 기억에 남는 순간은?",
+    "answer": "가족과 함께 저녁을 먹었어요. 오랜만에 모두 모였습니다.",
+    "images": ["/card3.png", "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=1000&fit=crop"],
+    "tags": ["가족", "식사"],
+    "emotions": ["love", "peace"],
+    "summary": "가족 저녁 식사",
+    "createdAt": "2025-06-18T19:30:00Z"
+  },
+  {
+    "id": "24",
+    "date": "2025-05-30",
+    "question": "오늘 느꼈던 감정을 한 단어로 표현한다면?",
+    "answer": "평온함. 봄날의 따뜻한 햇살을 즐겼어요.",
+    "images": ["/card4.png", "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=1000&fit=crop"],
+    "tags": ["봄", "날씨"],
+    "emotions": ["peace", "joy"],
+    "summary": "따뜻한 봄날",
+    "createdAt": "2025-05-30T15:00:00Z"
+  },
+  {
+    "id": "25",
+    "date": "2025-05-25",
+    "question": "오늘의 하이라이트를 사진과 함께 기록해보세요",
+    "answer": "꽃구경을 했어요. 벚꽃이 정말 아름다웠습니다.",
+    "images": ["/card5.png", "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&h=1000&fit=crop"],
+    "tags": ["벚꽃", "봄"],
+    "emotions": ["joy", "love"],
+    "summary": "벚꽃 구경",
+    "createdAt": "2025-05-25T14:00:00Z"
+  },
+  {
+    "id": "26",
+    "date": "2025-05-20",
+    "question": "오늘 하루는 어떠셨나요?",
+    "answer": "새로운 취미를 시작했어요. 기대가 됩니다.",
+    "images": ["/card1.png", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop"],
+    "tags": ["취미", "시작"],
+    "emotions": ["excitement", "joy"],
+    "summary": "새로운 취미 시작",
+    "createdAt": "2025-05-20T18:00:00Z"
+  },
+  {
+    "id": "27",
+    "date": "2025-04-28",
+    "question": "오늘 가장 기억에 남는 순간은?",
+    "answer": "친구와 함께 카페에서 시간을 보냈어요. 좋은 대화를 나눴습니다.",
+    "images": ["/card2.png", "https://images.unsplash.com/photo-1501339847302-ac426a4c7c6f?w=800&h=1000&fit=crop"],
+    "tags": ["친구", "카페", "대화"],
+    "emotions": ["joy", "love"],
+    "summary": "친구와 카페에서 대화",
+    "createdAt": "2025-04-28T16:00:00Z"
+  },
+  {
+    "id": "28",
+    "date": "2025-04-22",
+    "question": "오늘 느꼈던 감정을 한 단어로 표현한다면?",
+    "answer": "뿌듯함. 오늘 목표를 달성했어요.",
+    "images": ["/card3.png", "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=1000&fit=crop"],
+    "tags": ["목표", "성취"],
+    "emotions": ["joy", "excitement"],
+    "summary": "목표 달성",
+    "createdAt": "2025-04-22T19:00:00Z"
+  },
+  {
+    "id": "29",
+    "date": "2025-04-18",
+    "question": "오늘의 하이라이트를 사진과 함께 기록해보세요",
+    "answer": "산책을 했어요. 봄의 신선한 공기를 마셨습니다.",
+    "images": ["/card4.png", "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=1000&fit=crop"],
+    "tags": ["산책", "봄"],
+    "emotions": ["peace", "joy"],
+    "summary": "봄 산책",
+    "createdAt": "2025-04-18T17:00:00Z"
+  },
+  {
+    "id": "30",
+    "date": "2025-03-30",
+    "question": "오늘 하루는 어떠셨나요?",
+    "answer": "집에서 영화를 봤어요. 좋은 영화였습니다.",
+    "images": ["/card5.png", "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&h=1000&fit=crop"],
+    "tags": ["영화", "휴식"],
+    "emotions": ["peace", "joy"],
+    "summary": "집에서 영화 감상",
+    "createdAt": "2025-03-30T20:00:00Z"
   }
 ]

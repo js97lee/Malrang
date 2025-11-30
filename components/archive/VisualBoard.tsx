@@ -124,16 +124,7 @@ function ArchiveCard({
       <img
         src={currentImage}
         alt={record.summary || '기록'}
-        className={`absolute z-10 ${isFirst ? '' : 'inset-0 w-full h-full object-cover'}`}
-        style={isFirst ? { 
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          transform: 'rotate(-90deg) scale(1.25)',
-          transformOrigin: 'center center',
-          top: 0,
-          left: 0
-        } : {}}
+        className="absolute z-10 inset-0 w-full h-full object-cover"
         onError={handleImageError}
       />
       

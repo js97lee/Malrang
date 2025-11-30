@@ -163,30 +163,6 @@ export default function ReportPage() {
             </div>
           )}
 
-          {/* 감정 도넛 차트 */}
-          {report.emotions.length > 0 && (
-            <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200">
-              <h3 className="font-bold text-gray-900 mb-4">이달의 감정</h3>
-              <div className="flex justify-center mb-6">
-                <EmotionDonutChart emotions={report.emotions} />
-              </div>
-              <div className="space-y-2">
-                {report.emotions.map((emotion) => (
-                  <div key={emotion.emotion} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: emotionColors[emotion.emotion] || '#9CA3AF' }}
-                      />
-                      <span className="text-sm text-gray-700 font-medium">{emotionLabels[emotion.emotion] || emotion.emotion}</span>
-                    </div>
-                    <span className="text-sm font-semibold">{emotion.percentage}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* 나의 감정 기록 노트 */}
           <EmotionNotebook records={allRecords} />
 
@@ -194,11 +170,16 @@ export default function ReportPage() {
           <EmotionFlowChart records={allRecords} days={365} showRepeatingThoughts={false} />
 
           {/* 키워드 */}
-          <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200 pb-4 border-b-2 border-gray-300" style={{ boxShadow: 'none' }}>
+          <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200" style={{ boxShadow: 'none' }}>
             <h3 className="font-bold text-gray-900 mb-4">이달의 키워드</h3>
             <div className="flex flex-wrap gap-2">
               {report.keywords.map((keyword) => (
-                <Tag key={keyword}>{keyword}</Tag>
+                <span
+                  key={keyword}
+                  className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-gray-900 border border-amber-200"
+                >
+                  {keyword}
+                </span>
               ))}
             </div>
           </div>

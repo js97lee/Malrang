@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileFrame from '@/components/layout/MobileFrame';
 import BottomNavigation from '@/components/layout/BottomNavigation';
@@ -16,23 +16,51 @@ import questionsData from '@/data/questions.json';
 import TutorialBanner from '@/components/tutorial/TutorialBanner';
 import TutorialSection from '@/components/tutorial/TutorialSection';
 import { getCurrentTutorialStep, checkTutorialProgress } from '@/lib/utils/tutorial';
+import mockRecords from '@/data/mockRecords.json';
 
 export default function Home() {
   const router = useRouter();
   const [records, setRecords] = useState<Record[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
   const [isChatMode, setIsChatMode] = useState(false);
   const [conversationCount, setConversationCount] = useState(0);
   const [showReportPrompt, setShowReportPrompt] = useState(false);
   const [lastImageAnalysis, setLastImageAnalysis] = useState<string | null>(null); // 마지막 이미지 분석 결과 저장
   const [tutorialStep, setTutorialStep] = useState<any>(null);
   
+  const [allRecords, setAllRecords] = useState<Record[]>([]);
+  
   useEffect(() => {
     // 저장된 대화 데이터 가져오기
     const conversations = getAllConversations();
     const conversationRecords = conversations.map(conv => conversationToRecord(conv));
+    
+    // Mock 데이터와 합치기 (타입 변환)
+    const mockRecordsTyped = (mockRecords as any[]).map(record => ({
+      ...record,
+      emotions: (record.emotions || []) as any,
+      tags: record.tags || [],
+      images: record.images || [],
+    })) as Record[];
+    
+    // Mock 데이터의 id 목록 (우선 보존)
+    const mockRecordIds = new Set(mockRecordsTyped.map(r => r.id));
+    
+    // conversationRecords에서 mockRecords와 중복되지 않는 것만 필터링
+    const uniqueConversationRecords = conversationRecords.filter(
+      record => !mockRecordIds.has(record.id)
+    );
+    
+    // Mock 데이터를 먼저 넣고, 그 다음 conversationRecords 추가
+    const combinedRecords = [...mockRecordsTyped, ...uniqueConversationRecords];
+    
     setRecords(conversationRecords);
+    setAllRecords(combinedRecords);
     
     // 튜토리얼 진행 상황 확인
     const step = checkTutorialProgress(conversationRecords.length);
@@ -241,10 +269,42 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
+  // 마우스 드래그 스크롤 핸들러
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrollContainerRef.current) return;
+    isDraggingRef.current = true;
+    startXRef.current = e.pageX - scrollContainerRef.current.offsetLeft;
+    scrollLeftRef.current = scrollContainerRef.current.scrollLeft;
+    scrollContainerRef.current.style.cursor = 'grabbing';
+    scrollContainerRef.current.style.userSelect = 'none';
+  };
+
+  const handleMouseLeave = () => {
+    if (!scrollContainerRef.current) return;
+    isDraggingRef.current = false;
+    scrollContainerRef.current.style.cursor = 'grab';
+    scrollContainerRef.current.style.userSelect = 'auto';
+  };
+
+  const handleMouseUp = () => {
+    if (!scrollContainerRef.current) return;
+    isDraggingRef.current = false;
+    scrollContainerRef.current.style.cursor = 'grab';
+    scrollContainerRef.current.style.userSelect = 'auto';
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startXRef.current) * 2; // 스크롤 속도 조절
+    scrollContainerRef.current.scrollLeft = scrollLeftRef.current - walk;
+  };
+
   return (
     <MobileFrame>
       <div className="flex flex-col h-full">
-        <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-6 pb-6 relative">
+        <main className="flex-1 overflow-y-auto scrollbar-hide px-6 pb-6 relative">
           {!isChatMode ? (
             <div className="relative">
               {/* 제목과 캐릭터를 묶은 영역 */}
@@ -309,10 +369,67 @@ export default function Home() {
                 <DailyQuestion question={currentQuestion} />
                 <button
                   onClick={handleStartChat}
-                  className="w-full bg-primary-500 text-white py-2.5 rounded-full font-medium text-sm hover:bg-primary-600 active:bg-primary-700 transition-all uppercase tracking-wide mt-3 mb-8"
+                  className="w-full bg-primary-500 text-white py-2.5 rounded-full font-bold text-sm hover:bg-primary-600 active:bg-primary-700 transition-all uppercase tracking-wide mt-2 mb-6 flex items-center justify-center gap-2"
                 >
                   하루 기록하기
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
+
+                {/* 갤러리 카드 - 좌우 스크롤 */}
+                {allRecords.length > 0 && (
+                  <div className="mb-8 -mx-6 px-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">최근 아카이브</h3>
+                    <div className="relative">
+                      <div 
+                        ref={scrollContainerRef}
+                        className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 cursor-grab active:cursor-grabbing" 
+                        style={{ 
+                          WebkitOverflowScrolling: 'touch',
+                          touchAction: 'pan-x pinch-zoom',
+                          overscrollBehaviorX: 'contain'
+                        }}
+                        onMouseDown={handleMouseDown}
+                        onMouseLeave={handleMouseLeave}
+                        onMouseUp={handleMouseUp}
+                        onMouseMove={handleMouseMove}
+                      >
+                        {allRecords
+                          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                          .slice(0, 10)
+                          .map((record, index) => {
+                            const recordDate = new Date(record.date);
+                            const dayName = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][recordDate.getDay()];
+                            const dayNumber = recordDate.getDate();
+                            const today = new Date();
+                            const isToday = 
+                              recordDate.getDate() === today.getDate() &&
+                              recordDate.getMonth() === today.getMonth() &&
+                              recordDate.getFullYear() === today.getFullYear();
+                            
+                            const cardIndex = (index % 5) + 1;
+                            const defaultImage = `/card${cardIndex}.png`;
+                            const hasValidImage = record.images && record.images.length > 0 && record.images[0];
+                            
+                            return (
+                              <GalleryCard
+                                key={record.id}
+                                record={record}
+                                defaultImage={defaultImage}
+                                hasValidImage={hasValidImage}
+                                dayName={dayName}
+                                dayNumber={dayNumber}
+                                isToday={isToday}
+                                isFirst={index === 0}
+                                onClick={() => router.push(`/archive/${record.id}`)}
+                              />
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* 튜토리얼 섹션 */}
                 <TutorialSection />
@@ -455,6 +572,95 @@ export default function Home() {
         <BottomNavigation />
       </div>
     </MobileFrame>
+  );
+}
+
+function GalleryCard({
+  record,
+  defaultImage,
+  hasValidImage,
+  dayName,
+  dayNumber,
+  isToday,
+  isFirst,
+  onClick,
+}: {
+  record: Record;
+  defaultImage: string;
+  hasValidImage: boolean;
+  dayName: string;
+  dayNumber: number;
+  isToday: boolean;
+  isFirst: boolean;
+  onClick: () => void;
+}) {
+  const [imageError, setImageError] = useState(false);
+  const [currentImage, setCurrentImage] = useState(
+    hasValidImage ? record.images![0] : defaultImage
+  );
+  
+  const handleImageError = () => {
+    if (!imageError && hasValidImage) {
+      setImageError(true);
+      setCurrentImage(defaultImage);
+    } else {
+      const img = document.querySelector(`[data-gallery-card-id="${record.id}"] img`) as HTMLImageElement;
+      if (img) {
+        img.style.display = 'none';
+      }
+    }
+  };
+  
+  const cardMouseDownRef = useRef({ x: 0, y: 0, time: 0 });
+  
+  const handleCardMouseDown = (e: React.MouseEvent) => {
+    cardMouseDownRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      time: Date.now()
+    };
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const moveDistance = Math.abs(e.clientX - cardMouseDownRef.current.x) + Math.abs(e.clientY - cardMouseDownRef.current.y);
+    const timeDiff = Date.now() - cardMouseDownRef.current.time;
+    
+    // 드래그로 판단되는 경우 (5px 이상 이동 또는 300ms 이상 경과)
+    if (moveDistance > 5 || timeDiff > 300) {
+      e.preventDefault();
+      return;
+    }
+    onClick();
+  };
+
+  return (
+    <div
+      data-gallery-card-id={record.id}
+      onMouseDown={handleCardMouseDown}
+      onClick={handleCardClick}
+      className={`w-32 flex-shrink-0 aspect-[4/5] rounded-lg overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity ${
+        isToday ? 'ring-2 ring-primary-500' : ''
+      }`}
+    >
+      {/* 기본 그라디언트 배경 - 항상 표시 */}
+      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
+      
+      <img
+        src={currentImage}
+        alt={record.summary || '기록'}
+        className="absolute z-10 inset-0 w-full h-full object-cover"
+        onError={handleImageError}
+      />
+      
+      {/* Black Dim 오버레이 */}
+      <div className="absolute inset-0 bg-black opacity-40 z-20"></div>
+      
+      {/* 날짜 오버레이 */}
+      <div className="absolute top-2 left-2 text-white drop-shadow-lg z-30">
+        <div className="text-xs font-medium leading-tight">{dayName}</div>
+        <div className="text-3xl font-bold leading-tight font-serif">{dayNumber}</div>
+      </div>
+    </div>
   );
 }
 

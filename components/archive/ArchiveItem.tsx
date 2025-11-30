@@ -65,7 +65,7 @@ export default function ArchiveItem({ record, onClick, index = 0 }: ArchiveItemP
           <img
             src={currentImage}
             alt={record.summary || '기록'}
-            className={`w-full h-full z-10 ${isFirst ? '-rotate-90 h-full w-auto' : 'object-cover'}`}
+            className="w-full h-full z-10 object-cover"
             onError={handleImageError}
           />
         </div>

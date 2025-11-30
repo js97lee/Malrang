@@ -62,13 +62,18 @@ export default function ArchivePage() {
   const [recommendedRecords, setRecommendedRecords] = useState<Record[]>([]);
   
   const handleRecordClick = (record: Record) => {
-    // 모든 뷰에서 대화 기록 모달 표시
-    setSelectedRecord(record);
-    // 대화 기록 찾기
-    const conversations = getAllConversations();
-    const conversation = conversations.find(conv => conv.id === record.id);
-    if (conversation) {
-      setSelectedConversation(conversation);
+    // 갤러리 뷰일 때는 이미지 확대 팝업 표시
+    if (viewMode === 'calendar') {
+      // 이미지 URL 찾기
+      const cardIndex = filteredRecords.findIndex(r => r.id === record.id);
+      const defaultImageIndex = (cardIndex % 5) + 1;
+      const defaultImage = `/card${defaultImageIndex}.png`;
+      const imageSrc = record.images && record.images.length > 0 ? record.images[0] : defaultImage;
+      
+      setExpandedImage({ src: imageSrc, record });
+    } else {
+      // 리스트 뷰일 때는 대화 기록 페이지로 이동
+      router.push(`/archive/${record.id}`);
     }
   };
 
@@ -204,7 +209,6 @@ export default function ArchivePage() {
                     src={expandedImage.src}
                     alt={expandedImage.record.summary || '기록'}
                     className="max-w-full max-h-full object-contain"
-                    style={isFirstCard ? { transform: 'rotate(-90deg)' } : {}}
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
@@ -212,8 +216,8 @@ export default function ArchivePage() {
             );
           })()}
           
-          {/* 대화 기록 모달 */}
-          {selectedRecord && (() => {
+          {/* 대화 기록 모달 - 갤러리 뷰에서만 사용 (현재는 사용 안 함) */}
+          {false && selectedRecord && (() => {
             // 이미지 URL 찾기 (갤러리에서 선택한 경우 기본 이미지도 포함)
             const recordIndex = filteredRecords.findIndex(r => r.id === selectedRecord.id);
             const cardIndex = (recordIndex % 5) + 1;
@@ -246,8 +250,7 @@ export default function ArchivePage() {
                       <img
                         src={displayImage}
                         alt={selectedRecord.summary || '기록'}
-                        className={isFirstCard ? 'h-full w-auto' : 'w-full h-full object-cover'}
-                        style={isFirstCard ? { transform: 'rotate(-90deg)' } : {}}
+                        className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = defaultImage;
