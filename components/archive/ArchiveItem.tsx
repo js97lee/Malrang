@@ -1,13 +1,15 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { Record } from '@/lib/types';
-import Tag from '@/components/ui/Tag';
 
 interface ArchiveItemProps {
   record: Record;
   onClick?: () => void;
+  index?: number;
 }
 
-export default function ArchiveItem({ record, onClick }: ArchiveItemProps) {
+export default function ArchiveItem({ record, onClick, index = 0 }: ArchiveItemProps) {
   // 날짜를 YYYY.M.D. 형식으로 변환
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -17,6 +19,38 @@ export default function ArchiveItem({ record, onClick }: ArchiveItemProps) {
     return `${year}.${month}.${day}.`;
   };
 
+  // 이미지가 없으면 card1-5를 순서대로 할당
+  const cardIndex = (index % 5) + 1;
+  const defaultImage = `/card${cardIndex}.png`;
+  const hasValidImage = record.images && record.images.length > 0 && record.images[0];
+  const isFirst = index === 0;
+  
+  const [imageError, setImageError] = useState(false);
+  const [currentImage, setCurrentImage] = useState(
+    hasValidImage ? record.images![0] : defaultImage
+  );
+  
+  const handleImageError = () => {
+    if (!imageError && hasValidImage) {
+      // 첫 번째 이미지 실패 시 기본 이미지로 fallback
+      setImageError(true);
+      setCurrentImage(defaultImage);
+    } else {
+      // 기본 이미지도 실패하면 placeholder 표시
+      const img = document.querySelector(`[data-archive-item-id="${record.id}"] img`) as HTMLImageElement;
+      if (img) {
+        img.style.display = 'none';
+        const parent = img.parentElement;
+        if (parent && !parent.querySelector('.image-placeholder')) {
+          const placeholder = document.createElement('span');
+          placeholder.className = 'image-placeholder text-xs text-gray-400';
+          placeholder.textContent = '이미지 없음';
+          parent.appendChild(placeholder);
+        }
+      }
+    }
+  };
+
   return (
     <div
       onClick={onClick}
@@ -24,19 +58,17 @@ export default function ArchiveItem({ record, onClick }: ArchiveItemProps) {
     >
       <div className="flex gap-3">
         {/* 왼쪽 썸네일 이미지 */}
-        {record.images && record.images.length > 0 ? (
-          <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
-            <img
-              src={record.images[0]}
-              alt={record.summary || '기록'}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 flex items-center justify-center">
-            <span className="text-xs text-gray-400">이미지 없음</span>
-          </div>
-        )}
+        <div 
+          data-archive-item-id={record.id}
+          className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 flex items-center justify-center relative"
+        >
+          <img
+            src={currentImage}
+            alt={record.summary || '기록'}
+            className={`w-full h-full z-10 ${isFirst ? '-rotate-90 h-full w-auto' : 'object-cover'}`}
+            onError={handleImageError}
+          />
+        </div>
         
         {/* 오른쪽 콘텐츠 */}
         <div className="flex-1 min-w-0">
@@ -44,7 +76,12 @@ export default function ArchiveItem({ record, onClick }: ArchiveItemProps) {
           {record.tags && record.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
               {record.tags.slice(0, 1).map((tag) => (
-                <Tag key={tag} className="bg-gray-500 text-white">{tag}</Tag>
+                <span
+                  key={tag}
+                  className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-gray-900 border border-amber-200"
+                >
+                  {tag}
+                </span>
               ))}
             </div>
           )}

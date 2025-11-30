@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileFrame from '@/components/layout/MobileFrame';
 import BottomNavigation from '@/components/layout/BottomNavigation';
+import PageHeader from '@/components/layout/PageHeader';
 import EmotionDonutChart from '@/components/report/EmotionDonutChart';
 import EmotionFlowChart from '@/components/report/EmotionFlowChart';
 import EmotionNotebook from '@/components/report/EmotionNotebook';
@@ -40,6 +41,7 @@ export default function ReportPage() {
   const router = useRouter();
   const [todayConversation, setTodayConversation] = useState<any>(null);
   const [allRecords, setAllRecords] = useState<Record[]>([]);
+  const [currentMonth, setCurrentMonth] = useState<string>(new Date().toISOString().substring(0, 7)); // YYYY-MM
   
   useEffect(() => {
     // 오늘의 대화 가져오기
@@ -56,8 +58,18 @@ export default function ReportPage() {
     const combinedRecords = [...conversationRecords, ...(mockRecords as Record[])];
     setAllRecords(combinedRecords);
   }, []);
-  
-  const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
+
+  const handlePreviousMonth = () => {
+    const date = new Date(currentMonth + '-01');
+    date.setMonth(date.getMonth() - 1);
+    setCurrentMonth(date.toISOString().substring(0, 7));
+  };
+
+  const handleNextMonth = () => {
+    const date = new Date(currentMonth + '-01');
+    date.setMonth(date.getMonth() + 1);
+    setCurrentMonth(date.toISOString().substring(0, 7));
+  };
   const report = useMemo(
     () => generateMonthlyReport(allRecords, currentMonth),
     [allRecords, currentMonth]
@@ -72,20 +84,46 @@ export default function ReportPage() {
   return (
     <MobileFrame>
       <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pt-10 px-6 pb-6 space-y-6">
-          <div>
-            <h2 className="text-xl font-bold mb-2">
-              {new Date(currentMonth + '-01').toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'long',
-              })}
-            </h2>
-            <p className="text-gray-700 text-sm font-medium">
-              총 {report.totalRecords}개의 기록
-              {todayConversation && (
-                <span className="ml-2 text-primary-600">• 오늘의 대화 포함</span>
-              )}
-            </p>
+        <PageHeader title="감정리포트" />
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-6 pb-6 space-y-6">
+          <div className="bg-primary-50 px-4 py-4 rounded-full">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={handlePreviousMonth}
+                className="p-2 bg-primary-500 hover:bg-primary-600 rounded-full transition-colors"
+                title="이전 달"
+              >
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div className="flex-1 text-center">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {new Date(currentMonth + '-01').toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                  })}
+                </h2>
+                <p className="text-gray-700 text-xs font-medium mt-1">
+                  총 {allRecords.length}개의 기록
+                  {report.totalRecords > 0 && (
+                    <span className="ml-2 text-primary-600">• 이번 달 {report.totalRecords}개</span>
+                  )}
+                  {todayConversation && (
+                    <span className="ml-2 text-primary-600">• 오늘의 대화 포함</span>
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={handleNextMonth}
+                className="p-2 bg-primary-500 hover:bg-primary-600 rounded-full transition-colors"
+                title="다음 달"
+              >
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
           
           {/* 오늘의 대화 하이라이트 */}
@@ -127,8 +165,8 @@ export default function ReportPage() {
 
           {/* 감정 도넛 차트 */}
           {report.emotions.length > 0 && (
-            <div className="bg-surface rounded-material-md p-6">
-              <h3 className="font-semibold text-gray-700 mb-4">이달의 감정</h3>
+            <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200">
+              <h3 className="font-bold text-gray-900 mb-4">이달의 감정</h3>
               <div className="flex justify-center mb-6">
                 <EmotionDonutChart emotions={report.emotions} />
               </div>
@@ -149,12 +187,15 @@ export default function ReportPage() {
             </div>
           )}
 
-          {/* 감정 흐름과 반복되는 생각 */}
-          <EmotionFlowChart records={allRecords} days={365} />
+          {/* 나의 감정 기록 노트 */}
+          <EmotionNotebook records={allRecords} />
+
+          {/* 감정 흐름 */}
+          <EmotionFlowChart records={allRecords} days={365} showRepeatingThoughts={false} />
 
           {/* 키워드 */}
-          <div className="bg-surface rounded-material-md p-6">
-            <h3 className="font-semibold text-gray-700 mb-4">이달의 키워드</h3>
+          <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200 pb-4 border-b-2 border-gray-300" style={{ boxShadow: 'none' }}>
+            <h3 className="font-bold text-gray-900 mb-4">이달의 키워드</h3>
             <div className="flex flex-wrap gap-2">
               {report.keywords.map((keyword) => (
                 <Tag key={keyword}>{keyword}</Tag>
@@ -169,8 +210,8 @@ export default function ReportPage() {
             <HighlightMoment record={report.highlightMoment} />
           ) : null}
 
-          {/* 나의 감정 기록 노트 */}
-          <EmotionNotebook records={allRecords} />
+          {/* 반복되는 생각 */}
+          <EmotionFlowChart records={allRecords} days={365} showEmotionFlow={false} showRepeatingThoughts={true} />
         </div>
         
         <BottomNavigation />

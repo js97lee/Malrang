@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileFrame from '@/components/layout/MobileFrame';
 import BottomNavigation from '@/components/layout/BottomNavigation';
+import PageHeader from '@/components/layout/PageHeader';
 import ArchiveList from '@/components/archive/ArchiveList';
 import ArchiveFilters from '@/components/archive/ArchiveFilters';
 import VisualBoard from '@/components/archive/VisualBoard';
@@ -17,6 +18,7 @@ export default function ArchivePage() {
   const [records, setRecords] = useState<Record[]>([]);
   const [selectedRecord, setSelectedRecord] = useState<Record | null>(null);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  const [expandedImage, setExpandedImage] = useState<{ src: string; record: Record } | null>(null);
   
   useEffect(() => {
     // 저장된 대화 데이터 가져오기
@@ -28,10 +30,30 @@ export default function ArchivePage() {
       ...record,
       emotions: (record.emotions || []) as any,
       tags: record.tags || [],
+      images: record.images || [],
     })) as Record[];
     
-    const combinedRecords: Record[] = [...conversationRecords, ...mockRecordsTyped];
-    setRecords(combinedRecords);
+    // Mock 데이터의 id 목록 (우선 보존)
+    const mockRecordIds = new Set(mockRecordsTyped.map(r => r.id));
+    
+    // conversationRecords에서 mockRecords와 중복되지 않는 것만 필터링
+    const uniqueConversationRecords = conversationRecords.filter(
+      record => !mockRecordIds.has(record.id)
+    );
+    
+    // Mock 데이터를 먼저 넣고, 그 다음 conversationRecords 추가
+    const allRecords = [...mockRecordsTyped, ...uniqueConversationRecords];
+    
+    // 디버깅: 3번 기록 확인
+    console.log('📊 Mock 기록 수:', mockRecordsTyped.length);
+    console.log('📊 Conversation 기록 수:', conversationRecords.length);
+    console.log('📊 중복 제거 후 Conversation 기록 수:', uniqueConversationRecords.length);
+    console.log('📊 전체 기록 수:', allRecords.length);
+    console.log('📊 3번 기록:', allRecords.find(r => r.id === '3'));
+    console.log('📊 3번 기록 상세:', JSON.stringify(allRecords.find(r => r.id === '3'), null, 2));
+    console.log('📊 모든 기록 ID:', allRecords.map(r => r.id));
+    
+    setRecords(allRecords);
   }, []);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +62,7 @@ export default function ArchivePage() {
   const [recommendedRecords, setRecommendedRecords] = useState<Record[]>([]);
   
   const handleRecordClick = (record: Record) => {
+    // 모든 뷰에서 대화 기록 모달 표시
     setSelectedRecord(record);
     // 대화 기록 찾기
     const conversations = getAllConversations();
@@ -104,10 +127,14 @@ export default function ArchivePage() {
 
   return (
     <MobileFrame>
-      <div className="flex flex-col h-full">
-        <div className="pt-10 px-4 pb-4 border-b border-gray-200">
-
-          <div className="flex gap-2">
+      <div className="flex flex-col h-full relative">
+        <div className="pt-6 px-4">
+          <div className="mb-2 pb-2 border-b border-gray-200 pl-[10px]">
+            <h1 className="text-2xl font-extrabold text-gray-900">아카이브</h1>
+          </div>
+          <div className="pb-[10px]"></div>
+          
+          <div className="flex gap-2 pb-4">
             <button
               onClick={() => setViewMode('calendar')}
               className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-all ${
@@ -131,7 +158,7 @@ export default function ArchivePage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide p-4">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide p-4 relative">
           {viewMode === 'list' && (
             <>
               <ArchiveFilters
@@ -154,36 +181,79 @@ export default function ArchivePage() {
             <VisualBoard records={filteredRecords} viewMode="calendar" onRecordClick={handleRecordClick} />
           )}
           
-          {/* 대화 기록 모달 */}
-          {selectedRecord && selectedConversation && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-material-md p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">대화 기록</h2>
+          {/* 이미지 확대 팝업 - MobileFrame 전체 덮기 */}
+          {expandedImage && viewMode === 'calendar' && (() => {
+            const recordIndex = filteredRecords.findIndex(r => r.id === expandedImage.record.id);
+            const isFirstCard = recordIndex === 0;
+            
+            return (
+              <div 
+                className="absolute inset-0 bg-black/90 flex items-center justify-center z-[99999]"
+                onClick={() => setExpandedImage(null)}
+              >
+                <div className="relative w-full h-full flex items-center justify-center p-4">
                   <button
-                    onClick={() => {
-                      setSelectedRecord(null);
-                      setSelectedConversation(null);
-                    }}
-                    className="text-gray-500 hover:text-gray-700"
+                    onClick={() => setExpandedImage(null)}
+                    className="absolute top-4 right-4 text-white hover:text-gray-300 z-10 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-colors"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
+                  <img
+                    src={expandedImage.src}
+                    alt={expandedImage.record.summary || '기록'}
+                    className="max-w-full max-h-full object-contain"
+                    style={isFirstCard ? { transform: 'rotate(-90deg)' } : {}}
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 </div>
-                
-                <div className="space-y-4">
-                  {/* 썸네일 이미지 */}
-                  {selectedRecord.images && selectedRecord.images.length > 0 && (
-                    <div className="w-full h-48 rounded-lg overflow-hidden mb-4 bg-gray-100">
+              </div>
+            );
+          })()}
+          
+          {/* 대화 기록 모달 */}
+          {selectedRecord && (() => {
+            // 이미지 URL 찾기 (갤러리에서 선택한 경우 기본 이미지도 포함)
+            const recordIndex = filteredRecords.findIndex(r => r.id === selectedRecord.id);
+            const cardIndex = (recordIndex % 5) + 1;
+            const defaultImage = `/card${cardIndex}.png`;
+            const hasValidImage = selectedRecord.images && selectedRecord.images.length > 0 && selectedRecord.images[0];
+            const displayImage = hasValidImage ? selectedRecord.images[0] : defaultImage;
+            const isFirstCard = recordIndex === 0;
+            
+            return (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
+                <div className="bg-white rounded-material-md p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900">기록 상세</h2>
+                    <button
+                      onClick={() => {
+                        setSelectedRecord(null);
+                        setSelectedConversation(null);
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4 px-4">
+                    {/* 썸네일 이미지 */}
+                    <div className="w-full h-48 rounded-lg overflow-hidden mb-4 bg-gray-100 flex items-center justify-center">
                       <img
-                        src={selectedRecord.images[0]}
+                        src={displayImage}
                         alt={selectedRecord.summary || '기록'}
-                        className="w-full h-full object-cover"
+                        className={isFirstCard ? 'h-full w-auto' : 'w-full h-full object-cover'}
+                        style={isFirstCard ? { transform: 'rotate(-90deg)' } : {}}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = defaultImage;
+                        }}
                       />
                     </div>
-                  )}
                   
                   <div>
                     <p className="text-sm text-gray-600 mb-1">날짜</p>
@@ -192,46 +262,73 @@ export default function ArchivePage() {
                     </p>
                   </div>
                   
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">질문</p>
-                    <p className="text-gray-900">{selectedConversation.question}</p>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-600 mb-2">대화 내용</p>
-                    {selectedConversation.messages.map((message: any) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.type === 'question' ? 'justify-start' : 'justify-end'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] rounded-material-md p-3 ${
-                            message.type === 'question'
-                              ? 'bg-surface-variant text-gray-900'
-                              : 'bg-primary-500 text-white'
-                          }`}
-                        >
-                          {message.type === 'image' && message.images && (
-                            <div className="mb-2 space-y-2">
-                              {message.images.map((img: string, idx: number) => (
-                                <img
-                                  key={idx}
-                                  src={img}
-                                  alt={`Uploaded ${idx + 1}`}
-                                  className="w-full rounded-lg"
-                                />
-                              ))}
-                            </div>
-                          )}
-                          <p className="whitespace-pre-wrap text-sm">{message.content}</p>
-                        </div>
+                  {selectedConversation ? (
+                    <>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">질문</p>
+                        <p className="text-gray-900">{selectedConversation.question}</p>
                       </div>
-                    ))}
-                  </div>
+                      
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600 mb-2">대화 내용</p>
+                        {selectedConversation.messages && selectedConversation.messages.map((message: any) => (
+                          <div
+                            key={message.id}
+                            className={`flex ${message.type === 'question' ? 'justify-start' : 'justify-end'}`}
+                          >
+                            <div
+                              className={`max-w-[80%] rounded-material-md p-3 ${
+                                message.type === 'question'
+                                  ? 'bg-surface-variant text-gray-900'
+                                  : 'bg-primary-500 text-white'
+                              }`}
+                            >
+                              {message.type === 'image' && message.images && (
+                                <div className="mb-2 space-y-2">
+                                  {message.images.map((img: string, idx: number) => (
+                                    <img
+                                      key={idx}
+                                      src={img}
+                                      alt={`Uploaded ${idx + 1}`}
+                                      className="w-full rounded-lg"
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                              <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">요약</p>
+                        <p className="text-gray-900">{selectedRecord.summary || selectedRecord.answer}</p>
+                      </div>
+                      {selectedRecord.tags && selectedRecord.tags.length > 0 && (
+                        <div>
+                          <p className="text-sm text-gray-600 mb-2">태그</p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedRecord.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-gray-900 border border-amber-200"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
-          )}
+            );
+          })()}
         </div>
         
         <BottomNavigation />

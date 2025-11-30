@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileFrame from '@/components/layout/MobileFrame';
 import BottomNavigation from '@/components/layout/BottomNavigation';
+import PageHeader from '@/components/layout/PageHeader';
 import ChatThread from '@/components/today/ChatThread';
 import InputBar from '@/components/ui/InputBar';
 import { conversationToRecord, saveTodayConversation, getAllConversations } from '@/lib/utils/conversationStorage';
@@ -217,19 +218,8 @@ export default function RecordPage() {
   return (
     <MobileFrame>
       <div className="flex flex-col h-full">
-        <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pt-10 px-4 pb-6 relative">
-          <div className="mb-4 pb-4 border-b border-gray-200 flex items-center gap-3">
-            <button
-              onClick={() => router.push('/')}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="뒤로가기"
-            >
-              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-xl font-bold text-gray-900">오늘의 기록</h1>
-          </div>
+        <PageHeader title="오늘의 기록" />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-4 pb-6 relative">
           
           <div className="relative pb-20">
             <ChatThread messages={messages} />

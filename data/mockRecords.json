@@ -26,7 +26,7 @@
     "date": "2025-01-13",
     "question": "오늘의 하이라이트를 사진과 함께 기록해보세요",
     "answer": "카페에서 읽던 책을 마지막 페이지까지 읽었어요. 정말 감동적인 결말이었습니다.",
-    "images": ["/images/book.jpg"],
+    "images": [],
     "tags": ["독서", "카페"],
     "emotions": ["joy", "surprise"],
     "summary": "책을 완독한 날",

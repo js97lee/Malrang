@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileFrame from '@/components/layout/MobileFrame';
 import BottomNavigation from '@/components/layout/BottomNavigation';
+import PageHeader from '@/components/layout/PageHeader';
 import RefeelHero from '@/components/refeel/RefeelHero';
 import TemplateGrid from '@/components/refeel/TemplateGrid';
 import { RefeelTemplate } from '@/lib/types';
@@ -22,7 +23,8 @@ export default function RefeelPage() {
   return (
     <MobileFrame>
       <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-y-auto pt-10 px-6 pb-6">
+        <PageHeader title="릴스" />
+        <div className="flex-1 overflow-y-auto pt-0 px-6 pb-6">
           <RefeelHero />
           <div className="mb-4">
             <h2 className="text-lg font-semibold mb-4">템플릿 선택</h2>

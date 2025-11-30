@@ -6,6 +6,8 @@ import { Record, Emotion } from '@/lib/types';
 interface EmotionFlowChartProps {
   records: Record[];
   days?: number;
+  showEmotionFlow?: boolean;
+  showRepeatingThoughts?: boolean;
 }
 
 const emotionColors: Record<Emotion, string> = {
@@ -30,7 +32,7 @@ const emotionLabels: Record<Emotion, string> = {
   excitement: '흥분',
 };
 
-export default function EmotionFlowChart({ records, days = 30 }: EmotionFlowChartProps) {
+export default function EmotionFlowChart({ records, days = 30, showEmotionFlow = true, showRepeatingThoughts = true }: EmotionFlowChartProps) {
   // 디버깅: 데이터 확인
   console.log('📊 EmotionFlowChart 데이터:', {
     totalRecords: records.length,
@@ -121,9 +123,11 @@ export default function EmotionFlowChart({ records, days = 30 }: EmotionFlowChar
 
   // 막대 그래프를 위한 좌표 계산
   const chartHeight = 200;
-  const chartWidth = Math.max(400, dates.length * 60);
+  const baseWidth = 400;
+  const calculatedWidth = Math.max(baseWidth, dates.length * 40);
+  const chartWidth = calculatedWidth;
   const padding = 50;
-  const barWidth = dates.length > 0 ? Math.min(40, (chartWidth - padding * 2) / dates.length - 10) : 30;
+  const barWidth = 8; // 막대 굵기를 얇게 고정
   const barSpacing = dates.length > 0 ? (chartWidth - padding * 2) / dates.length : 50;
 
   const getY = (value: number) => {
@@ -137,13 +141,14 @@ export default function EmotionFlowChart({ records, days = 30 }: EmotionFlowChar
 
   return (
     <div className="space-y-6">
-      {/* 감정 흐름 차트 - 꺾은선 그래프 */}
-      <div className="bg-surface rounded-material-md p-6">
-        <h3 className="font-semibold text-gray-700 mb-4">감정 흐름</h3>
+      {/* 감정 흐름 차트 - 막대 그래프 */}
+      {showEmotionFlow && (
+      <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200">
+        <h3 className="font-bold text-gray-900 mb-4">감정 흐름</h3>
         {records.length > 0 && emotionList.length > 0 && dates.length > 0 ? (
           <div className="space-y-4">
-            <div className="relative" style={{ height: `${chartHeight}px`, width: '100%', overflowX: 'auto' }}>
-              <svg width={Math.max(chartWidth, 400)} height={chartHeight} className="min-w-full">
+            <div className="relative" style={{ height: `${chartHeight}px`, width: '100%' }}>
+              <svg width="100%" height={chartHeight} viewBox={`0 0 ${Math.max(400, dates.length * 60)} ${chartHeight}`} preserveAspectRatio="xMidYMid meet">
                 {/* 그리드 라인 */}
                 {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
                   const y = padding + (chartHeight - padding * 2) * (1 - ratio);
@@ -246,12 +251,14 @@ export default function EmotionFlowChart({ records, days = 30 }: EmotionFlowChar
             )}
           </div>
         )}
+        <div className="mt-6 pt-4 border-t border-gray-300"></div>
       </div>
+      )}
 
       {/* 반복되는 생각 패턴 */}
-      {topThoughts.length > 0 && (
-        <div className="bg-surface rounded-material-md p-6">
-          <h3 className="font-semibold text-gray-700 mb-4">반복되는 생각</h3>
+      {showRepeatingThoughts && topThoughts.length > 0 && (
+        <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200">
+          <h3 className="font-bold text-gray-900 mb-4">카테고리</h3>
           <div className="space-y-3">
             {topThoughts.map(([thought, count]) => {
               const maxCount = Math.max(...topThoughts.map(([, c]) => c));

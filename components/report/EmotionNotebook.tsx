@@ -68,8 +68,8 @@ export default function EmotionNotebook({ records }: EmotionNotebookProps) {
   }, [emotions, emotionCounts]);
 
   return (
-    <div className="bg-surface rounded-material-md p-6">
-      <h3 className="font-semibold text-gray-700 mb-6">나의 감정 기록 노트</h3>
+    <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200">
+      <h3 className="font-bold text-gray-900 mb-6">나의 감정 기록 노트</h3>
       
       {/* 감정 비중 도넛 차트 */}
       {emotionData.length > 0 && (
@@ -146,6 +146,7 @@ export default function EmotionNotebook({ records }: EmotionNotebookProps) {
           </p>
         )}
       </div>
+      <div className="mt-6 pt-4 border-t border-gray-300"></div>
     </div>
   );
 }

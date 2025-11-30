@@ -48,25 +48,6 @@ export default function ArchiveFilters({
           />
         </svg>
       </div>
-
-      <div>
-        <p className="text-sm text-gray-700 mb-2 font-medium">태그 필터</p>
-        <div className="flex flex-wrap gap-2 items-center">
-          {tags.map((tag) => (
-            <Tag
-              key={tag}
-              onClick={() => onTagToggle(tag)}
-              className={
-                selectedTags.includes(tag)
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-primary-100 text-primary-700'
-              }
-            >
-              {tag}
-            </Tag>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
