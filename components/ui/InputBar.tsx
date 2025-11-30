@@ -12,6 +12,8 @@ export default function InputBar({ onSend, onImageSelect, placeholder = '메시�
   const [text, setText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const lastEnterTimeRef = useRef<number>(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     // Web Speech API 지원 확인
@@ -100,19 +102,44 @@ export default function InputBar({ onSend, onImageSelect, placeholder = '메시�
         <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
       </label>
       <textarea
+        ref={textareaRef}
         value={text}
         onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          // 엔터 두 번 감지 (0.5초 이내)
+          if (e.key === 'Enter' && !e.shiftKey) {
+            const now = Date.now();
+            const timeSinceLastEnter = now - lastEnterTimeRef.current;
+            
+            if (timeSinceLastEnter < 500 && timeSinceLastEnter > 0) {
+              // 엔터 두 번 감지 - 전송
+              e.preventDefault();
+              if (text.trim()) {
+                onSend(text);
+                setText('');
+                if (textareaRef.current) {
+                  textareaRef.current.style.height = '40px';
+                }
+              }
+            } else {
+              // 첫 번째 엔터 - 줄바꿈 허용 (두 줄 제한 내에서)
+              lastEnterTimeRef.current = now;
+            }
+          }
+        }}
         placeholder={placeholder}
         rows={1}
         className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none overflow-hidden"
         style={{
           minHeight: '40px',
-          maxHeight: '120px',
+          maxHeight: '60px', // 두 줄 높이로 제한 (약 60px)
         }}
         onInput={(e) => {
           const target = e.target as HTMLTextAreaElement;
           target.style.height = 'auto';
-          target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
+          // 두 줄 높이로 제한 (약 60px)
+          const maxHeight = 60;
+          target.style.height = `${Math.min(target.scrollHeight, maxHeight)}px`;
         }}
       />
       <button

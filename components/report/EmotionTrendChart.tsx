@@ -9,14 +9,25 @@ interface EmotionTrendChartProps {
 }
 
 const emotionColors: Record<string, string> = {
-  joy: '#FBBF24',
-  sadness: '#60A5FA',
-  anger: '#F87171',
-  fear: '#A78BFA',
-  surprise: '#34D399',
-  love: '#FB7185',
-  peace: '#4ADE80',
-  excitement: '#F59E0B',
+  joy: '#FBBF24', // 노랑
+  sadness: '#3B82F6', // 파랑
+  anger: '#F97316', // 주황
+  fear: '#1F2937', // 검정
+  surprise: '#1F2937', // 검정
+  love: '#F97316', // 주황
+  peace: '#22C55E', // 초록
+  excitement: '#FBBF24', // 노랑
+};
+
+const emotionLabels: Record<string, string> = {
+  joy: '기쁨',
+  sadness: '슬픔',
+  anger: '화남',
+  fear: '두려움',
+  surprise: '놀람',
+  love: '사랑',
+  peace: '평온',
+  excitement: '흥분',
 };
 
 export default function EmotionTrendChart({ emotions, days }: EmotionTrendChartProps) {
@@ -76,7 +87,7 @@ export default function EmotionTrendChart({ emotions, days }: EmotionTrendChartP
                 className="w-3 h-3 rounded-full" 
                 style={{ backgroundColor: emotionColors[emotion.emotion] || '#9CA3AF' }}
               />
-              <span className="text-sm text-gray-700 font-medium">{emotion.emotion}</span>
+              <span className="text-sm text-gray-700 font-medium">{emotionLabels[emotion.emotion] || emotion.emotion}</span>
             </div>
             <span className="text-sm font-semibold">{emotion.percentage}%</span>
           </div>

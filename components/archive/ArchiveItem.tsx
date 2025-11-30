@@ -44,7 +44,7 @@ export default function ArchiveItem({ record, onClick }: ArchiveItemProps) {
           {record.tags && record.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
               {record.tags.slice(0, 1).map((tag) => (
-                <Tag key={tag} className="bg-blue-500 text-white">{tag}</Tag>
+                <Tag key={tag} className="bg-gray-500 text-white">{tag}</Tag>
               ))}
             </div>
           )}

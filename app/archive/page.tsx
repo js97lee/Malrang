@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileFrame from '@/components/layout/MobileFrame';
-import Header from '@/components/layout/Header';
 import BottomNavigation from '@/components/layout/BottomNavigation';
 import ArchiveList from '@/components/archive/ArchiveList';
 import ArchiveFilters from '@/components/archive/ArchiveFilters';
@@ -11,6 +10,7 @@ import VisualBoard from '@/components/archive/VisualBoard';
 import { Record } from '@/lib/types';
 import mockRecords from '@/data/mockRecords.json';
 import { getAllConversations, conversationToRecord } from '@/lib/utils/conversationStorage';
+import { recommendRecords } from '@/lib/utils/recommender';
 
 export default function ArchivePage() {
   const router = useRouter();
@@ -36,6 +36,8 @@ export default function ArchivePage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
+  const [showRecommended, setShowRecommended] = useState(false);
+  const [recommendedRecords, setRecommendedRecords] = useState<Record[]>([]);
   
   const handleRecordClick = (record: Record) => {
     setSelectedRecord(record);
@@ -87,14 +89,35 @@ export default function ArchivePage() {
     );
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setShowRecommended(false);
+  };
+
+  const handleRecommend = () => {
+    const recommended = recommendRecords(records, selectedRecord || undefined);
+    setRecommendedRecords(recommended);
+    setShowRecommended(true);
+    setSearchQuery('');
+    setSelectedTags([]);
+  };
+
   return (
     <MobileFrame>
       <div className="flex flex-col h-full">
-        <Header />
-        
-        <div className="p-4 border-b border-gray-200">
+        <div className="pt-10 px-4 pb-4 border-b border-gray-200">
 
           <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-all ${
+                viewMode === 'calendar'
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-surface-variant text-gray-700'
+              }`}
+            >
+              갤러리
+            </button>
             <button
               onClick={() => setViewMode('list')}
               className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-all ${
@@ -105,20 +128,10 @@ export default function ArchivePage() {
             >
               리스트
             </button>
-            <button
-              onClick={() => setViewMode('calendar')}
-              className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-all ${
-                viewMode === 'calendar'
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-surface-variant text-gray-700'
-              }`}
-            >
-              달력
-            </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide p-4">
           {viewMode === 'list' && (
             <>
               <ArchiveFilters
@@ -127,7 +140,14 @@ export default function ArchivePage() {
                 onTagToggle={handleTagToggle}
                 onSearchChange={setSearchQuery}
               />
-              <ArchiveList records={filteredRecords} onRecordClick={handleRecordClick} />
+              {showRecommended ? (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold mb-3 text-gray-900">추천 기록</h3>
+                  <ArchiveList records={recommendedRecords} onRecordClick={handleRecordClick} />
+                </div>
+              ) : (
+                <ArchiveList records={filteredRecords} onRecordClick={handleRecordClick} />
+              )}
             </>
           )}
           {viewMode === 'calendar' && (

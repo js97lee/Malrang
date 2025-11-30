@@ -3,10 +3,10 @@
 import { useMemo, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileFrame from '@/components/layout/MobileFrame';
-import Header from '@/components/layout/Header';
 import BottomNavigation from '@/components/layout/BottomNavigation';
 import EmotionDonutChart from '@/components/report/EmotionDonutChart';
-import EmotionTrendChart from '@/components/report/EmotionTrendChart';
+import EmotionFlowChart from '@/components/report/EmotionFlowChart';
+import EmotionNotebook from '@/components/report/EmotionNotebook';
 import HighlightMoment from '@/components/report/HighlightMoment';
 import { generateMonthlyReport } from '@/lib/analytics/emotionAggregator';
 import { getTodayConversation, conversationToRecord, getAllConversations } from '@/lib/utils/conversationStorage';
@@ -15,14 +15,25 @@ import { Record } from '@/lib/types';
 import Tag from '@/components/ui/Tag';
 
 const emotionColors: { [key: string]: string } = {
-  joy: '#FBBF24',
-  sadness: '#60A5FA',
-  anger: '#F87171',
-  fear: '#A78BFA',
-  surprise: '#34D399',
-  love: '#FB7185',
-  peace: '#4ADE80',
-  excitement: '#F59E0B',
+  joy: '#FBBF24', // 노랑
+  sadness: '#3B82F6', // 파랑
+  anger: '#F97316', // 주황
+  fear: '#1F2937', // 검정
+  surprise: '#1F2937', // 검정
+  love: '#F97316', // 주황
+  peace: '#22C55E', // 초록
+  excitement: '#FBBF24', // 노랑
+};
+
+const emotionLabels: { [key: string]: string } = {
+  joy: '기쁨',
+  sadness: '슬픔',
+  anger: '화남',
+  fear: '두려움',
+  surprise: '놀람',
+  love: '사랑',
+  peace: '평온',
+  excitement: '흥분',
 };
 
 export default function ReportPage() {
@@ -61,9 +72,7 @@ export default function ReportPage() {
   return (
     <MobileFrame>
       <div className="flex flex-col h-full">
-        <Header />
-
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pt-10 px-6 pb-6 space-y-6">
           <div>
             <h2 className="text-xl font-bold mb-2">
               {new Date(currentMonth + '-01').toLocaleDateString('ko-KR', {
@@ -131,7 +140,7 @@ export default function ReportPage() {
                         className="w-3 h-3 rounded-full" 
                         style={{ backgroundColor: emotionColors[emotion.emotion] || '#9CA3AF' }}
                       />
-                      <span className="text-sm text-gray-700 font-medium">{emotion.emotion}</span>
+                      <span className="text-sm text-gray-700 font-medium">{emotionLabels[emotion.emotion] || emotion.emotion}</span>
                     </div>
                     <span className="text-sm font-semibold">{emotion.percentage}%</span>
                   </div>
@@ -140,10 +149,8 @@ export default function ReportPage() {
             </div>
           )}
 
-          {/* 감정 추이 */}
-          <div className="bg-surface rounded-material-md p-6">
-            <EmotionTrendChart emotions={report.emotions} days={30} />
-          </div>
+          {/* 감정 흐름과 반복되는 생각 */}
+          <EmotionFlowChart records={allRecords} days={365} />
 
           {/* 키워드 */}
           <div className="bg-surface rounded-material-md p-6">
@@ -161,6 +168,9 @@ export default function ReportPage() {
           ) : report.highlightMoment ? (
             <HighlightMoment record={report.highlightMoment} />
           ) : null}
+
+          {/* 나의 감정 기록 노트 */}
+          <EmotionNotebook records={allRecords} />
         </div>
         
         <BottomNavigation />

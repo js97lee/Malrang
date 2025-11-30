@@ -3,18 +3,19 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import MobileFrame from '@/components/layout/MobileFrame';
-import Header from '@/components/layout/Header';
 import BottomNavigation from '@/components/layout/BottomNavigation';
 import DailyQuestion from '@/components/today/DailyQuestion';
 import ChatThread from '@/components/today/ChatThread';
 import InputBar from '@/components/ui/InputBar';
-import Button from '@/components/ui/Button';
 import { getAllConversations, conversationToRecord, saveTodayConversation } from '@/lib/utils/conversationStorage';
 import { generateMonthlyReport } from '@/lib/analytics/emotionAggregator';
 import { analyzeEmotionsFromConversation, extractKeywordsFromConversation, generateSummaryFromConversation } from '@/lib/analytics/conversationAnalyzer';
 import { ChatMessage, Record } from '@/lib/types';
 import Tag from '@/components/ui/Tag';
 import questionsData from '@/data/questions.json';
+import TutorialBanner from '@/components/tutorial/TutorialBanner';
+import TutorialSection from '@/components/tutorial/TutorialSection';
+import { getCurrentTutorialStep, checkTutorialProgress } from '@/lib/utils/tutorial';
 
 export default function Home() {
   const router = useRouter();
@@ -24,12 +25,18 @@ export default function Home() {
   const [isChatMode, setIsChatMode] = useState(false);
   const [conversationCount, setConversationCount] = useState(0);
   const [showReportPrompt, setShowReportPrompt] = useState(false);
+  const [lastImageAnalysis, setLastImageAnalysis] = useState<string | null>(null); // 마지막 이미지 분석 결과 저장
+  const [tutorialStep, setTutorialStep] = useState<any>(null);
   
   useEffect(() => {
     // 저장된 대화 데이터 가져오기
     const conversations = getAllConversations();
     const conversationRecords = conversations.map(conv => conversationToRecord(conv));
     setRecords(conversationRecords);
+    
+    // 튜토리얼 진행 상황 확인
+    const step = checkTutorialProgress(conversationRecords.length);
+    setTutorialStep(step);
     
     // 랜덤 질문 선택
     const randomQuestion = questionsData[Math.floor(Math.random() * questionsData.length)];
@@ -68,28 +75,49 @@ export default function Home() {
     setConversationCount(newCount);
 
     try {
+      // 대화 맥락을 유지하기 위해 전체 메시지 히스토리 전달
+      // 이미지가 첨부된 대화인 경우 이미지 분석 결과도 함께 전달
+      const hasImageInHistory = messages.some(msg => msg.type === 'image');
+      const imageAnalysisToSend = hasImageInHistory && lastImageAnalysis ? lastImageAnalysis : undefined;
+      
+      console.log('텍스트 메시지 전송:', { 
+        messageCount: updatedMessages.length, 
+        text: text.substring(0, 50),
+        hasImage: hasImageInHistory,
+        hasImageAnalysis: !!imageAnalysisToSend
+      });
+      
       const response = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: updatedMessages,
+          messages: updatedMessages, // 전체 대화 히스토리 포함
+          imageAnalysis: imageAnalysisToSend, // 이미지 분석 결과 전달 (있는 경우)
         }),
       });
 
       if (!response.ok) {
-        throw new Error('API 호출 실패');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('AI 채팅 API 오류:', response.status, errorData);
+        throw new Error(`API 호출 실패: ${errorData.error || response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('✅ AI 응답 받음:', data);
+      console.log('응답 메시지:', data.message);
+      
+      // 응답 메시지가 없거나 빈 값인 경우 확인
+      if (!data.message || data.message.trim() === '') {
+        console.error('⚠️ API 응답에 메시지가 없습니다:', data);
+        throw new Error('AI 응답이 비어있습니다.');
+      }
       
       const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'question',
-        content: data.message || (newCount < 5 
-          ? '더 자세히 이야기해주세요. 어떤 감정을 느꼈나요?'
-          : '대화가 충분히 진행되었습니다. 감정 리포트를 확인해보시겠어요?'),
+        content: data.message,
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, aiResponse]);
@@ -97,14 +125,25 @@ export default function Home() {
       if (newCount >= 5) {
         setShowReportPrompt(true);
       }
-    } catch (error) {
-      console.error('AI 응답 오류:', error);
+    } catch (error: any) {
+      console.error('❌ AI 응답 오류:', error);
+      console.error('오류 상세:', error);
+      
+      // 에러 메시지에 따라 다른 응답 제공
+      let errorMessage = '죄송합니다. 응답을 생성하는 중 오류가 발생했습니다.';
+      
+      if (error.message?.includes('API 키') || error.message?.includes('OPENAI_API_KEY')) {
+        errorMessage = 'API 설정을 확인해주세요. .env.local 파일에 OPENAI_API_KEY를 추가해주세요.';
+      } else if (error.message?.includes('응답이 비어있습니다')) {
+        errorMessage = 'AI 응답을 받지 못했습니다. 잠시 후 다시 시도해주세요.';
+      } else if (error.message) {
+        errorMessage = `오류: ${error.message}`;
+      }
+      
       const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'question',
-        content: newCount < 5 
-          ? '더 자세히 이야기해주세요. 어떤 감정을 느꼈나요?'
-          : '대화가 충분히 진행되었습니다. 감정 리포트를 확인해보시겠어요?',
+        content: errorMessage,
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, aiResponse]);
@@ -115,75 +154,176 @@ export default function Home() {
     }
   };
 
-  const handleImageSelect = (file: File) => {
-    const imageUrl = URL.createObjectURL(file);
-    const imageMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: 'image',
-      content: '사진을 첨부했습니다.',
-      timestamp: new Date().toISOString(),
-      images: [imageUrl],
+  const handleImageSelect = async (file: File) => {
+    // 이미지를 base64로 변환
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64Image = reader.result as string;
+      const imageUrl = URL.createObjectURL(file);
+      
+      const imageMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'image',
+        content: '사진을 첨부했습니다.',
+        timestamp: new Date().toISOString(),
+        images: [imageUrl],
+      };
+      
+      const updatedMessages = [...messages, imageMessage];
+      setMessages(updatedMessages);
+      
+      // 이미지 분석 API 호출
+      try {
+        console.log('이미지 분석 시작...', { imageSize: base64Image.length, messageCount: messages.length });
+        
+        const analyzeResponse = await fetch('/api/ai-image-analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageUrl: base64Image,
+            conversationHistory: messages, // 대화 맥락 전달
+          }),
+        });
+
+        if (!analyzeResponse.ok) {
+          const errorData = await analyzeResponse.json().catch(() => ({}));
+          console.error('이미지 분석 API 오류:', analyzeResponse.status, errorData);
+          throw new Error(`이미지 분석 실패: ${errorData.error || analyzeResponse.statusText}`);
+        }
+
+        const analyzeData = await analyzeResponse.json();
+        console.log('이미지 분석 결과:', analyzeData);
+        const imageAnalysis = analyzeData.analysis || '사진을 확인했습니다.';
+        
+        // 이미지 분석 결과를 상태에 저장 (이후 텍스트 메시지에서도 사용)
+        setLastImageAnalysis(imageAnalysis);
+
+        // 이미지 분석 후 AI 응답 생성 (대화 맥락 포함)
+        console.log('AI 채팅 요청 시작...', { messageCount: updatedMessages.length, imageAnalysis: imageAnalysis.substring(0, 50) });
+        
+        const chatResponse = await fetch('/api/ai-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: updatedMessages, // 전체 대화 히스토리 포함
+            imageAnalysis, // 이미지 분석 결과 전달
+          }),
+        });
+
+        if (!chatResponse.ok) {
+          const errorData = await chatResponse.json().catch(() => ({}));
+          console.error('AI 채팅 API 오류:', chatResponse.status, errorData);
+          throw new Error(`AI 응답 실패: ${errorData.error || chatResponse.statusText}`);
+        }
+
+        const chatData = await chatResponse.json();
+        console.log('AI 응답 받음:', chatData);
+        
+        const aiResponse: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'question',
+          content: chatData.message || '사진을 확인했습니다. 이 사진에 대해 더 이야기해주세요.',
+          timestamp: new Date().toISOString(),
+        };
+        
+        setMessages((prev) => [...prev, aiResponse]);
+      } catch (error: any) {
+        console.error('이미지 분석 또는 AI 응답 오류:', error);
+        // 오류 발생 시에도 기본 응답 제공
+        const aiResponse: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'question',
+          content: error.message?.includes('API 키') 
+            ? 'API 설정을 확인해주세요. 사진을 확인했습니다.'
+            : '사진을 확인했습니다. 이 사진에 대해 더 이야기해주세요.',
+          timestamp: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, aiResponse]);
+      }
     };
-    setMessages([...messages, imageMessage]);
+    
+    reader.readAsDataURL(file);
   };
 
   return (
     <MobileFrame>
       <div className="flex flex-col h-full">
-        <Header />
-
-        <main className="flex-1 overflow-y-auto p-6 relative">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-6 pb-6 relative">
           {!isChatMode ? (
             <div className="relative">
-              {/* 배경 캐릭터 (랜덤) */}
-              {(() => {
-                const characterColors = ['black', 'yellow', 'orange', 'green', 'blue'];
-                const randomIndex = Math.floor(Math.random() * characterColors.length);
-                const randomColor = characterColors[randomIndex];
-                return (
-                  <div className="absolute top-0 right-0 w-32 h-32 opacity-20 pointer-events-none z-0">
-                    <img
-                      src={`/character-${randomColor}.png`}
-                      alt={`Character ${randomColor}`}
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        // 이미지가 없으면 placeholder 표시
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent && !parent.querySelector('.character-placeholder')) {
-                          const placeholder = document.createElement('div');
-                          placeholder.className = 'character-placeholder w-full h-full bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300';
-                          placeholder.innerHTML = `<span class="text-xs text-gray-400 font-medium">Character ${randomColor}</span>`;
-                          parent.appendChild(placeholder);
-                        }
-                      }}
-                    />
-                  </div>
-                );
-              })()}
+              {/* 제목과 캐릭터를 묶은 영역 */}
+              <div className="relative min-h-[150px] flex items-end mb-6">
+                {/* 배경 캐릭터 (랜덤) */}
+                {(() => {
+                  const characterColors = ['black', 'yellow', 'orange', 'green', 'blue'];
+                  const randomIndex = Math.floor(Math.random() * characterColors.length);
+                  const randomColor = characterColors[randomIndex];
+                  return (
+                    <div className="absolute right-0 bottom-0 w-32 h-32 opacity-100 pointer-events-none scale-90">
+                      <img
+                        src={`/character-${randomColor}.png`}
+                        alt={`Character ${randomColor}`}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          // 이미지가 없으면 placeholder 표시
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent && !parent.querySelector('.character-placeholder')) {
+                            const placeholder = document.createElement('div');
+                            placeholder.className = 'character-placeholder w-full h-full bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300';
+                            placeholder.innerHTML = `<span class="text-xs text-gray-400 font-medium">Character ${randomColor}</span>`;
+                            parent.appendChild(placeholder);
+                          }
+                        }}
+                      />
+                    </div>
+                  );
+                })()}
+
+                {/* 제목 */}
+                <div className="relative z-10 flex-1">
+                  <h2 className="text-3xl font-extrabold text-gray-900 leading-tight mb-4">
+                    지수님,<br />
+                    오늘 하루는 어떠셨나요?
+                  </h2>
+                  
+                  {/* 키워드 7개 표시 */}
+                  {report.keywords.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {report.keywords.slice(0, 7).map((keyword) => (
+                        <Tag key={keyword}>{keyword}</Tag>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* 메인 콘텐츠 영역 */}
               <div className="relative z-10">
-                <h2 className="text-3xl font-bold text-gray-900 mb-8 leading-tight pt-[60px]">
-                  지수님,<br />
-                  오늘 하루는 어떠셨나요?
-                </h2>
-
-                {records.length === 0 && (
-                  <div className="bg-gray-50 rounded-material-md p-5 text-center mb-6">
-                    <p className="text-gray-600">아직 기록이 없습니다.</p>
-                    <p className="text-sm text-gray-500 mt-2">오늘의 첫 기록을 남겨보세요!</p>
-                  </div>
+                
+                {/* 튜토리얼 배너 */}
+                {tutorialStep && (
+                  <TutorialBanner 
+                    step={tutorialStep}
+                    onDismiss={() => setTutorialStep(null)}
+                  />
                 )}
 
                 <DailyQuestion question={currentQuestion} />
                 <button
                   onClick={handleStartChat}
-                  className="w-full bg-primary-500 text-white py-4 rounded-full font-medium text-base hover:bg-primary-600 active:bg-primary-700 transition-all uppercase tracking-wide mt-6"
+                  className="w-full bg-primary-500 text-white py-2.5 rounded-full font-medium text-sm hover:bg-primary-600 active:bg-primary-700 transition-all uppercase tracking-wide mt-3 mb-8"
                 >
-                  답변 시작하기
+                  하루 기록하기
                 </button>
+
+                {/* 튜토리얼 섹션 */}
+                <TutorialSection />
 
                 {/* 감정 데이터 요약 - 아래로 이동 */}
                 {records.length > 0 && (
@@ -225,8 +365,23 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <div className="mb-4">
-                <h1 className="text-xl font-medium text-gray-900 mb-2">오늘의 기록</h1>
+              <div className="mb-4 flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setIsChatMode(false);
+                    setMessages([]);
+                    setConversationCount(0);
+                    setShowReportPrompt(false);
+                    setLastImageAnalysis(null);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  title="뒤로가기"
+                >
+                  <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h1 className="text-xl font-medium text-gray-900">오늘의 기록</h1>
               </div>
               
               <div className="relative pb-20">
@@ -240,7 +395,7 @@ export default function Home() {
                       if (userAnswers.length > 0) {
                         const emotions = analyzeEmotionsFromConversation(messages);
                         const tags = extractKeywordsFromConversation(messages);
-                        const summary = generateSummaryFromConversation(messages);
+                        let summary = generateSummaryFromConversation(messages);
                         
                         // OpenAI API를 사용하여 카테고리 추출
                         const { extractCategoryFromConversation } = await import('@/lib/analytics/conversationAnalyzer');
@@ -249,12 +404,34 @@ export default function Home() {
                         // 카테고리가 있으면 tags 배열의 첫 번째로 추가
                         const finalTags = category ? [category, ...tags.filter(t => t !== category)] : tags;
                         
+                        // 요약 생성 (API 사용)
+                        try {
+                          const summaryResponse = await fetch('/api/ai-summarize', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ messages }),
+                          });
+                          if (summaryResponse.ok) {
+                            const summaryData = await summaryResponse.json();
+                            if (summaryData.summary) {
+                              summary = summaryData.summary;
+                            }
+                          }
+                        } catch (error) {
+                          console.error('요약 생성 오류:', error);
+                        }
+                        
                         const conversation = saveTodayConversation(messages, currentQuestion);
                         conversation.emotions = emotions;
                         conversation.tags = finalTags;
                         conversation.summary = summary;
                         
                         localStorage.setItem('malang_today_conversation', JSON.stringify(conversation));
+                        
+                        // 튜토리얼 진행 상황 업데이트
+                        const updatedRecords = getAllConversations().map(conv => conversationToRecord(conv));
+                        const updatedStep = checkTutorialProgress(updatedRecords.length);
+                        setTutorialStep(updatedStep);
                         
                         // 리포트 페이지로 이동 (새로고침 없이)
                         router.push('/report');
@@ -274,7 +451,7 @@ export default function Home() {
         </main>
 
         {isChatMode && (
-          <div className="px-6 pb-4">
+          <div className="px-2 pb-4">
             <InputBar
               onSend={handleSendMessage}
               onImageSelect={handleImageSelect}
