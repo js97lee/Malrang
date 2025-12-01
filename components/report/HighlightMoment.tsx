@@ -39,7 +39,7 @@ export default function HighlightMoment({ record }: HighlightMomentProps) {
   const recordIndex = allRecords.findIndex(r => r.id === foundRecord.id);
   const cardIndex = (recordIndex % 5) + 1;
   const defaultImage = `/card${cardIndex}.png`;
-  const hasValidImage = foundRecord.images && foundRecord.images.length > 0 && foundRecord.images[0];
+  const hasValidImage = !!(foundRecord.images && foundRecord.images.length > 0 && foundRecord.images[0]);
   const displayImage = hasValidImage ? foundRecord.images[0] : defaultImage;
   const isFirstCard = recordIndex === 0;
   
