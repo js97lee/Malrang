@@ -21,7 +21,7 @@ const emotionColors: { [key in Emotion]: string } = {
   excitement: '#FBBF24', // 노랑
 };
 
-const emotionLabels: Record<Emotion, string> = {
+const emotionLabels: { [key in Emotion]: string } = {
   joy: '기쁨',
   sadness: '슬픔',
   anger: '화남',
