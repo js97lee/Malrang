@@ -50,7 +50,7 @@ export default function VisualBoard({ records, viewMode = 'calendar', onRecordCl
             // 이미지가 없으면 card1-5를 순서대로 할당
             const cardIndex = (index % 5) + 1;
             const defaultImage = `/card${cardIndex}.png`;
-            const hasValidImage = record.images && record.images.length > 0 && record.images[0];
+            const hasValidImage = !!(record.images && record.images.length > 0 && record.images[0]);
             
             return (
               <ArchiveCard
