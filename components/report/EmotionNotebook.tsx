@@ -8,7 +8,7 @@ interface EmotionNotebookProps {
   records: Record[];
 }
 
-const emotionColors: Record<Emotion, string> = {
+const emotionColors: { [key in Emotion]: string } = {
   joy: '#FBBF24', // 노랑
   sadness: '#3B82F6', // 파랑
   anger: '#F97316', // 주황
@@ -19,7 +19,7 @@ const emotionColors: Record<Emotion, string> = {
   excitement: '#FBBF24', // 노랑
 };
 
-const emotionLabels: Record<Emotion, string> = {
+const emotionLabels: { [key in Emotion]: string } = {
   joy: '기쁨',
   sadness: '슬픔',
   anger: '화남',
