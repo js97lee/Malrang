@@ -10,7 +10,7 @@ interface EmotionFlowChartProps {
   showRepeatingThoughts?: boolean;
 }
 
-const emotionColors: Record<Emotion, string> = {
+const emotionColors: { [key in Emotion]: string } = {
   joy: '#FBBF24', // 노랑
   sadness: '#3B82F6', // 파랑
   anger: '#F97316', // 주황
