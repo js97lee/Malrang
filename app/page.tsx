@@ -410,7 +410,7 @@ export default function Home() {
                             
                             const cardIndex = (index % 5) + 1;
                             const defaultImage = `/card${cardIndex}.png`;
-                            const hasValidImage = record.images && record.images.length > 0 && record.images[0];
+                            const hasValidImage = !!(record.images && record.images.length > 0 && record.images[0]);
                             
                             return (
                               <GalleryCard
