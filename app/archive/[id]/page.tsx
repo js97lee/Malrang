@@ -35,7 +35,7 @@ export default function ArchiveDetailPage() {
           id: 'question-1',
           type: 'question',
           content: foundConversation.question,
-          timestamp: foundConversation.createdAt || new Date().toISOString(),
+          timestamp: foundConversation.date ? `${foundConversation.date}T12:00:00Z` : new Date().toISOString(),
         });
       }
       
@@ -46,7 +46,7 @@ export default function ArchiveDetailPage() {
             id: msg.id || `msg-${index}`,
             type: msg.type || 'answer',
             content: msg.content || '',
-            timestamp: msg.timestamp || foundConversation.createdAt || new Date().toISOString(),
+            timestamp: msg.timestamp || (foundConversation.date ? `${foundConversation.date}T12:00:00Z` : new Date().toISOString()),
             images: msg.images || [],
           });
         });
