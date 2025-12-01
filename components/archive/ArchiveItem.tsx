@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Record } from '@/lib/types';
+import { formatDateShort, getRecordImage } from '@/lib/utils/recordUtils';
 
 interface ArchiveItemProps {
   record: Record;
@@ -10,19 +11,7 @@ interface ArchiveItemProps {
 }
 
 export default function ArchiveItem({ record, onClick, index = 0 }: ArchiveItemProps) {
-  // 날짜를 YYYY.M.D. 형식으로 변환
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    return `${year}.${month}.${day}.`;
-  };
-
-  // 이미지가 없으면 card1-5를 순서대로 할당
-  const cardIndex = (index % 5) + 1;
-  const defaultImage = `/card${cardIndex}.png`;
-  const hasValidImage = !!(record.images && record.images.length > 0 && record.images[0]);
+  const { imageUrl: defaultImage, hasValidImage } = getRecordImage(record, index);
   const isFirst = index === 0;
   
   const [imageError, setImageError] = useState(false);
@@ -87,7 +76,7 @@ export default function ArchiveItem({ record, onClick, index = 0 }: ArchiveItemP
           )}
           
           {/* 날짜 */}
-          <p className="text-xs text-gray-600 mb-1">{formatDate(record.date)}</p>
+          <p className="text-xs text-gray-600 mb-1">{formatDateShort(record.date)}</p>
           
           {/* 설명 텍스트 */}
           <h3 className="text-sm text-gray-900 line-clamp-2 leading-relaxed">

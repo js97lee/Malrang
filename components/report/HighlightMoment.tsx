@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { Record } from '@/lib/types';
 import mockRecords from '@/data/mockRecords.json';
 import { getAllConversations, conversationToRecord } from '@/lib/utils/conversationStorage';
+import { getRecordImage, formatDateLong } from '@/lib/utils/recordUtils';
 
 interface HighlightMomentProps {
   record: Record;
@@ -37,19 +38,8 @@ export default function HighlightMoment({ record }: HighlightMomentProps) {
   
   // 이미지 URL 찾기
   const recordIndex = allRecords.findIndex(r => r.id === foundRecord.id);
-  const cardIndex = (recordIndex % 5) + 1;
-  const defaultImage = `/card${cardIndex}.png`;
-  const hasValidImage = !!(foundRecord.images && foundRecord.images.length > 0 && foundRecord.images[0]);
-  const displayImage = hasValidImage ? foundRecord.images[0] : defaultImage;
-  const isFirstCard = recordIndex === 0;
-  
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    return `${year}. ${month}. ${day}.`;
-  };
+  const { imageUrl: displayImage, hasValidImage } = getRecordImage(foundRecord, recordIndex);
+  const defaultImage = displayImage; // fallback용
   
   return (
     <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200">
@@ -57,7 +47,7 @@ export default function HighlightMoment({ record }: HighlightMomentProps) {
       <div className="flex gap-4">
         {/* 왼쪽: 텍스트 내용 */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-600 mb-2">{formatDate(foundRecord.date)}</p>
+          <p className="text-sm text-gray-600 mb-2">{formatDateLong(foundRecord.date)}</p>
           <p className="text-gray-900 mb-3">{foundRecord.summary || foundRecord.answer}</p>
           {foundRecord.tags && foundRecord.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">

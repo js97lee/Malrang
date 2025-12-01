@@ -8,10 +8,12 @@ import DailyQuestion from '@/components/today/DailyQuestion';
 import ChatThread from '@/components/today/ChatThread';
 import InputBar from '@/components/ui/InputBar';
 import { getAllConversations, conversationToRecord, saveTodayConversation } from '@/lib/utils/conversationStorage';
+import { getRecordImage, getDateInfo, isToday } from '@/lib/utils/recordUtils';
 import { generateMonthlyReport } from '@/lib/analytics/emotionAggregator';
 import { analyzeEmotionsFromConversation, extractKeywordsFromConversation, generateSummaryFromConversation } from '@/lib/analytics/conversationAnalyzer';
 import { ChatMessage, Record } from '@/lib/types';
 import Tag from '@/components/ui/Tag';
+import RecordCard from '@/components/ui/RecordCard';
 import questionsData from '@/data/questions.json';
 import TutorialBanner from '@/components/tutorial/TutorialBanner';
 import TutorialSection from '@/components/tutorial/TutorialSection';
@@ -399,30 +401,23 @@ export default function Home() {
                           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                           .slice(0, 10)
                           .map((record, index) => {
-                            const recordDate = new Date(record.date);
-                            const dayName = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][recordDate.getDay()];
-                            const dayNumber = recordDate.getDate();
-                            const today = new Date();
-                            const isToday = 
-                              recordDate.getDate() === today.getDate() &&
-                              recordDate.getMonth() === today.getMonth() &&
-                              recordDate.getFullYear() === today.getFullYear();
-                            
-                            const cardIndex = (index % 5) + 1;
-                            const defaultImage = `/card${cardIndex}.png`;
-                            const hasValidImage = !!(record.images && record.images.length > 0 && record.images[0]);
+                            const { dayName, dayNumber } = getDateInfo(record.date);
+                            const { imageUrl: defaultImage, hasValidImage } = getRecordImage(record, index);
+                            const recordIsToday = isToday(record.date);
                             
                             return (
-                              <GalleryCard
+                              <RecordCard
                                 key={record.id}
                                 record={record}
                                 defaultImage={defaultImage}
                                 hasValidImage={hasValidImage}
                                 dayName={dayName}
                                 dayNumber={dayNumber}
-                                isToday={isToday}
-                                isFirst={index === 0}
+                                isToday={recordIsToday}
                                 onClick={() => router.push(`/archive/${record.id}`)}
+                                className="w-32 flex-shrink-0"
+                                dataAttribute="data-gallery-card-id"
+                                enableDragDetection={true}
                               />
                             );
                           })}
@@ -575,92 +570,4 @@ export default function Home() {
   );
 }
 
-function GalleryCard({
-  record,
-  defaultImage,
-  hasValidImage,
-  dayName,
-  dayNumber,
-  isToday,
-  isFirst,
-  onClick,
-}: {
-  record: Record;
-  defaultImage: string;
-  hasValidImage: boolean;
-  dayName: string;
-  dayNumber: number;
-  isToday: boolean;
-  isFirst: boolean;
-  onClick: () => void;
-}) {
-  const [imageError, setImageError] = useState(false);
-  const [currentImage, setCurrentImage] = useState(
-    hasValidImage ? record.images![0] : defaultImage
-  );
-  
-  const handleImageError = () => {
-    if (!imageError && hasValidImage) {
-      setImageError(true);
-      setCurrentImage(defaultImage);
-    } else {
-      const img = document.querySelector(`[data-gallery-card-id="${record.id}"] img`) as HTMLImageElement;
-      if (img) {
-        img.style.display = 'none';
-      }
-    }
-  };
-  
-  const cardMouseDownRef = useRef({ x: 0, y: 0, time: 0 });
-  
-  const handleCardMouseDown = (e: React.MouseEvent) => {
-    cardMouseDownRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      time: Date.now()
-    };
-  };
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    const moveDistance = Math.abs(e.clientX - cardMouseDownRef.current.x) + Math.abs(e.clientY - cardMouseDownRef.current.y);
-    const timeDiff = Date.now() - cardMouseDownRef.current.time;
-    
-    // 드래그로 판단되는 경우 (5px 이상 이동 또는 300ms 이상 경과)
-    if (moveDistance > 5 || timeDiff > 300) {
-      e.preventDefault();
-      return;
-    }
-    onClick();
-  };
-
-  return (
-    <div
-      data-gallery-card-id={record.id}
-      onMouseDown={handleCardMouseDown}
-      onClick={handleCardClick}
-      className={`w-32 flex-shrink-0 aspect-[4/5] rounded-lg overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity ${
-        isToday ? 'ring-2 ring-primary-500' : ''
-      }`}
-    >
-      {/* 기본 그라디언트 배경 - 항상 표시 */}
-      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
-      
-      <img
-        src={currentImage}
-        alt={record.summary || '기록'}
-        className="absolute z-10 inset-0 w-full h-full object-cover"
-        onError={handleImageError}
-      />
-      
-      {/* Black Dim 오버레이 */}
-      <div className="absolute inset-0 bg-black opacity-40 z-20"></div>
-      
-      {/* 날짜 오버레이 */}
-      <div className="absolute top-2 left-2 text-white drop-shadow-lg z-30">
-        <div className="text-xs font-medium leading-tight">{dayName}</div>
-        <div className="text-3xl font-bold leading-tight font-serif">{dayNumber}</div>
-      </div>
-    </div>
-  );
-}
 

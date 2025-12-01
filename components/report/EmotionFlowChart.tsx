@@ -33,13 +33,6 @@ const emotionLabels: { [key in Emotion]: string } = {
 };
 
 export default function EmotionFlowChart({ records, days = 30, showEmotionFlow = true, showRepeatingThoughts = true }: EmotionFlowChartProps) {
-  // 디버깅: 데이터 확인
-  console.log('📊 EmotionFlowChart 데이터:', {
-    totalRecords: records.length,
-    days,
-    recordsWithEmotions: records.filter(r => r.emotions && r.emotions.length > 0).length,
-  });
-
   // 모든 기록에서 감정 추출 (감정 기록 노트와 동일한 데이터 사용)
   const allEmotionsSet = new Set<Emotion>();
   records.forEach(record => {
@@ -69,11 +62,6 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  console.log('📊 필터링된 기록:', {
-    recentRecordsCount: recentRecords.length,
-    dates: recentRecords.map(r => r.date),
-  });
-
   // 날짜별 감정 집계
   const emotionByDate: { [date: string]: { [emotion: string]: number } } = {};
   
@@ -89,12 +77,6 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
 
   const dates = Object.keys(emotionByDate).sort();
   
-  console.log('📊 날짜별 감정 집계:', {
-    datesCount: dates.length,
-    dates,
-    emotionByDate,
-  });
-  
   // 감정 기록 노트와 동일한 감정 목록 사용 (모든 감정 포함)
   const emotionList = Array.from(allEmotionsSet) as Emotion[];
   const maxValue = dates.length > 0 
@@ -102,12 +84,6 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
         Object.values(emotionByDate[date]).reduce((sum, count) => sum + count, 0)
       ), 1)
     : 1;
-  
-  console.log('📊 그래프 데이터:', {
-    emotionList,
-    maxValue,
-    datesCount: dates.length,
-  });
 
   // 반복되는 생각 패턴 분석
   const thoughtPatterns: { [keyword: string]: number } = {};

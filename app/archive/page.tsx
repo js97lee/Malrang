@@ -43,16 +43,6 @@ export default function ArchivePage() {
     
     // Mock 데이터를 먼저 넣고, 그 다음 conversationRecords 추가
     const allRecords = [...mockRecordsTyped, ...uniqueConversationRecords];
-    
-    // 디버깅: 3번 기록 확인
-    console.log('📊 Mock 기록 수:', mockRecordsTyped.length);
-    console.log('📊 Conversation 기록 수:', conversationRecords.length);
-    console.log('📊 중복 제거 후 Conversation 기록 수:', uniqueConversationRecords.length);
-    console.log('📊 전체 기록 수:', allRecords.length);
-    console.log('📊 3번 기록:', allRecords.find(r => r.id === '3'));
-    console.log('📊 3번 기록 상세:', JSON.stringify(allRecords.find(r => r.id === '3'), null, 2));
-    console.log('📊 모든 기록 ID:', allRecords.map(r => r.id));
-    
     setRecords(allRecords);
   }, []);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);

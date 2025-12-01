@@ -10,19 +10,12 @@ interface ArchiveListProps {
 }
 
 export default function ArchiveList({ records, onRecordClick }: ArchiveListProps) {
-  // 디버깅: 3번 기록 확인
   const sortedRecords = useMemo(() => {
-    const sorted = [...records].sort((a, b) => {
+    return [...records].sort((a, b) => {
       const dateA = new Date(a.date).getTime();
       const dateB = new Date(b.date).getTime();
       return dateB - dateA; // 최신순 정렬
     });
-    
-    console.log('📋 ArchiveList - 받은 records 수:', records.length);
-    console.log('📋 ArchiveList - 3번 기록:', sorted.find(r => r.id === '3'));
-    console.log('📋 ArchiveList - 모든 기록 ID:', sorted.map(r => r.id));
-    
-    return sorted;
   }, [records]);
 
   return (
