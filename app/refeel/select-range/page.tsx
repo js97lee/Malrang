@@ -55,7 +55,7 @@ function SelectRangePageContent() {
     }
     acc[monthKey].push(record);
     return acc;
-  }, {} as Record<string, Record[]>);
+  }, {} as { [key: string]: Record[] });
 
   const allTags = Array.from(new Set(records.flatMap((r) => r.tags)));
   
