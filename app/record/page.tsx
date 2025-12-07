@@ -37,9 +37,11 @@ export default function RecordPage() {
     ]);
     
     // 자동으로 시나리오 진행
+    // 각 메시지의 delay는 이전 메시지의 타이핑 시간 + 2초를 고려하여 계산
+    // 타이핑 속도: 120ms per character
     const scenario = [
       {
-        delay: 1500,
+        delay: 1500, // 첫 사용자 메시지까지 1.5초
         message: {
           id: '2',
           type: 'answer' as const,
@@ -48,7 +50,8 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 2000,
+        // 메시지 2 타이핑 시간: 약 50자 * 120ms = 6000ms + 2초 = 8000ms
+        delay: 8000,
         message: {
           id: '3',
           type: 'question' as const,
@@ -57,7 +60,7 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 2000,
+        delay: 2000, // AI 응답 후 2초
         message: {
           id: '4',
           type: 'answer' as const,
@@ -66,7 +69,8 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 1500,
+        // 메시지 4 타이핑 시간: 약 70자 * 120ms = 8400ms + 2초 = 10400ms
+        delay: 10400,
         message: {
           id: '4-1',
           type: 'image' as const,
@@ -76,7 +80,7 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 500,
+        delay: 500, // 이미지 후 0.5초
         message: {
           id: '4-2',
           type: 'image' as const,
@@ -86,7 +90,7 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 2000,
+        delay: 2000, // 이미지 후 2초
         message: {
           id: '5',
           type: 'question' as const,
@@ -95,7 +99,7 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 2000,
+        delay: 2000, // AI 응답 후 2초
         message: {
           id: '6',
           type: 'answer' as const,
@@ -104,7 +108,8 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 2000,
+        // 메시지 6 타이핑 시간: 약 30자 * 120ms = 3600ms + 2초 = 5600ms
+        delay: 5600,
         message: {
           id: '7',
           type: 'question' as const,

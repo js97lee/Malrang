@@ -68,29 +68,9 @@ export default function ChatThread({ messages }: ChatThreadProps) {
     });
   }, [messages]);
 
-  // 타이핑 중인 사용자 메시지 찾기
-  const findTypingMessageIndex = () => {
-    for (let i = 0; i < messages.length; i++) {
-      const message = messages[i];
-      if (message.type === 'answer') {
-        const typingMsg = typingMessages.get(message.id);
-        if (typingMsg && !typingMsg.isComplete) {
-          return i;
-        }
-      }
-    }
-    return -1;
-  };
-
-  const typingMessageIndex = findTypingMessageIndex();
-  // 타이핑 중인 메시지가 있으면 그 이후의 메시지는 숨김
-  const visibleMessages = typingMessageIndex >= 0 
-    ? messages.slice(0, typingMessageIndex + 1)
-    : messages;
-
   return (
     <div className="space-y-4 pb-4">
-      {visibleMessages.map((message) => {
+      {messages.map((message) => {
         const typingMsg = typingMessages.get(message.id);
         const displayText = 
           message.type === 'answer' && typingMsg 
@@ -122,10 +102,56 @@ export default function ChatThread({ messages }: ChatThreadProps) {
                 </div>
               )}
               <p className="whitespace-pre-wrap">
-                {displayText}
-                {message.type === 'answer' && typingMsg && !typingMsg.isComplete && (
-                  <span className="inline-block w-0.5 h-4 bg-current ml-0.5 animate-pulse">|</span>
-                )}
+                {(() => {
+                  // 해시태그를 볼드 처리하는 함수
+                  const formatTextWithHashtags = (text: string) => {
+                    const parts: (string | JSX.Element)[] = [];
+                    const lines = text.split('\n');
+                    
+                    lines.forEach((line, lineIndex) => {
+                      if (lineIndex > 0) {
+                        parts.push('\n');
+                      }
+                      
+                      // 해시태그 패턴 찾기 (#으로 시작하는 단어들)
+                      const hashtagRegex = /(#[\w가-힣]+)/g;
+                      let lastIndex = 0;
+                      let match;
+                      
+                      while ((match = hashtagRegex.exec(line)) !== null) {
+                        // 해시태그 이전 텍스트
+                        if (match.index > lastIndex) {
+                          parts.push(line.substring(lastIndex, match.index));
+                        }
+                        // 해시태그를 볼드 처리
+                        parts.push(
+                          <strong key={`hashtag-${lineIndex}-${match.index}`} className="font-bold">
+                            {match[0]}
+                          </strong>
+                        );
+                        lastIndex = match.index + match[0].length;
+                      }
+                      
+                      // 마지막 해시태그 이후 텍스트
+                      if (lastIndex < line.length) {
+                        parts.push(line.substring(lastIndex));
+                      }
+                    });
+                    
+                    return parts.length > 0 ? parts : text;
+                  };
+                  
+                  const formattedText = formatTextWithHashtags(displayText);
+                  
+                  return (
+                    <>
+                      {formattedText}
+                      {message.type === 'answer' && typingMsg && !typingMsg.isComplete && (
+                        <span className="inline-block w-0.5 h-4 bg-current ml-0.5 animate-pulse">|</span>
+                      )}
+                    </>
+                  );
+                })()}
               </p>
             </div>
           </div>
