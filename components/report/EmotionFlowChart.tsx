@@ -8,6 +8,7 @@ interface EmotionFlowChartProps {
   days?: number;
   showEmotionFlow?: boolean;
   showRepeatingThoughts?: boolean;
+  currentMonth?: string; // YYYY-MM 형식
 }
 
 const emotionColors: { [key in Emotion]: string } = {
@@ -32,7 +33,7 @@ const emotionLabels: { [key in Emotion]: string } = {
   excitement: '흥분',
 };
 
-export default function EmotionFlowChart({ records, days = 30, showEmotionFlow = true, showRepeatingThoughts = true }: EmotionFlowChartProps) {
+export default function EmotionFlowChart({ records, days = 30, showEmotionFlow = true, showRepeatingThoughts = true, currentMonth }: EmotionFlowChartProps) {
   // 모든 기록에서 감정 추출 (감정 기록 노트와 동일한 데이터 사용)
   const allEmotionsSet = new Set<Emotion>();
   records.forEach(record => {
@@ -44,14 +45,20 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
   });
 
   // 최근 N일의 기록만 필터링 (또는 모든 기록 사용)
-  const recentRecords = records
+  let filteredRecords = records
     .filter(record => {
       if (!record.date) return false;
       const recordDate = new Date(record.date);
       if (isNaN(recordDate.getTime())) return false;
       
-      // 최근 N일 필터링 (days가 0보다 클 때만)
-      if (days > 0) {
+      // currentMonth가 있으면 해당 월의 데이터만 필터링
+      if (currentMonth) {
+        const recordMonth = recordDate.toISOString().substring(0, 7); // YYYY-MM
+        if (recordMonth !== currentMonth) return false;
+      }
+      
+      // 최근 N일 필터링 (days가 0보다 클 때만, currentMonth가 없을 때만)
+      if (days > 0 && !currentMonth) {
         const daysAgo = new Date();
         daysAgo.setDate(daysAgo.getDate() - days);
         daysAgo.setHours(0, 0, 0, 0); // 시간 초기화
@@ -61,6 +68,8 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
       return true; // days가 0이면 모든 기록 사용
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  const recentRecords = filteredRecords;
 
   // 날짜별 감정 집계
   const emotionByDate: { [date: string]: { [emotion: string]: number } } = {};
@@ -97,22 +106,75 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
 
-  // 막대 그래프를 위한 좌표 계산
-  const chartHeight = 200;
-  const baseWidth = 400;
-  const calculatedWidth = Math.max(baseWidth, dates.length * 40);
+  // 주간별로 그룹화
+  const weeklyData: { [weekKey: string]: { [emotion: string]: number } } = {};
+  
+  dates.forEach(date => {
+    const dateObj = new Date(date);
+    const dayOfWeek = dateObj.getDay(); // 0=일요일, 1=월요일, ..., 6=토요일
+    
+    // 해당 주의 월요일 계산
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // 일요일이면 -6일, 아니면 월요일까지의 오프셋
+    const monday = new Date(dateObj);
+    monday.setDate(dateObj.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+    
+    // 주 키: YYYY-MM-DD (월요일 날짜)
+    const weekKey = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+    
+    if (!weeklyData[weekKey]) {
+      weeklyData[weekKey] = {};
+    }
+    
+    Object.keys(emotionByDate[date] || {}).forEach(emotion => {
+      weeklyData[weekKey][emotion] = (weeklyData[weekKey][emotion] || 0) + (emotionByDate[date][emotion] || 0);
+    });
+  });
+
+  const weeks = Object.keys(weeklyData).sort();
+  
+  // 막대 그래프를 위한 좌표 계산 (확대)
+  const chartHeight = 300; // 200 -> 300으로 확대
+  const baseWidth = 500; // 400 -> 500으로 확대
+  const calculatedWidth = Math.max(baseWidth, weeks.length * 60);
   const chartWidth = calculatedWidth;
   const padding = 50;
-  const barWidth = 8; // 막대 굵기를 얇게 고정
-  const barSpacing = dates.length > 0 ? (chartWidth - padding * 2) / dates.length : 50;
+  const barWidth = 12; // 8 -> 12로 확대
+  const barSpacing = weeks.length > 0 ? (chartWidth - padding * 2) / weeks.length : 60;
+
+  // 주간 데이터의 최대값 계산
+  const weeklyMaxValue = weeks.length > 0 
+    ? Math.max(...weeks.map(week => 
+        Object.values(weeklyData[week]).reduce((sum, count) => sum + count, 0)
+      ), 1)
+    : 1;
 
   const getY = (value: number) => {
-    return chartHeight - padding - ((value / maxValue) * (chartHeight - padding * 2));
+    return chartHeight - padding - ((value / weeklyMaxValue) * (chartHeight - padding * 2));
   };
 
   const getX = (index: number) => {
-    if (dates.length === 0) return padding;
+    if (weeks.length === 0) return padding;
     return padding + (index * barSpacing) + (barSpacing / 2) - (barWidth / 2);
+  };
+  
+  // 주 키를 표시용 레이블로 변환 (월요일 날짜 기준)
+  const getWeekLabel = (weekKey: string) => {
+    const [year, month, day] = weekKey.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const monthNum = parseInt(month);
+    const dayNum = parseInt(day);
+    
+    // 해당 주의 마지막 날 (일요일) 계산
+    const sunday = new Date(date);
+    sunday.setDate(date.getDate() + 6);
+    
+    // 같은 달이면 "M월 D일~D일", 다른 달이면 "M월 D일~M월 D일"
+    if (date.getMonth() === sunday.getMonth()) {
+      return `${monthNum}/${dayNum}~${sunday.getDate()}`;
+    } else {
+      return `${monthNum}/${dayNum}~${sunday.getMonth() + 1}/${sunday.getDate()}`;
+    }
   };
 
   return (
@@ -121,10 +183,10 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
       {showEmotionFlow && (
       <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200">
         <h3 className="font-bold text-gray-900 mb-4">감정 흐름</h3>
-        {records.length > 0 && emotionList.length > 0 && dates.length > 0 ? (
+        {records.length > 0 && emotionList.length > 0 && weeks.length > 0 ? (
           <div className="space-y-4">
-            <div className="relative" style={{ height: `${chartHeight}px`, width: '100%' }}>
-              <svg width="100%" height={chartHeight} viewBox={`0 0 ${Math.max(400, dates.length * 60)} ${chartHeight}`} preserveAspectRatio="xMidYMid meet">
+            <div className="relative overflow-x-auto" style={{ height: `${chartHeight}px`, width: '100%' }}>
+              <svg width={Math.max(chartWidth, 500)} height={chartHeight} viewBox={`0 0 ${Math.max(chartWidth, 500)} ${chartHeight}`} preserveAspectRatio="xMidYMid meet">
                 {/* 그리드 라인 */}
                 {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
                   const y = padding + (chartHeight - padding * 2) * (1 - ratio);
@@ -142,17 +204,17 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
                   );
                 })}
 
-                {/* 각 날짜별 막대 그래프 (감정별로 쌓기) */}
-                {dates.map((date, dateIdx) => {
-                  const x = getX(dateIdx);
+                {/* 각 주별 막대 그래프 (감정별로 쌓기) */}
+                {weeks.map((week, weekIdx) => {
+                  const x = getX(weekIdx);
                   let currentY = chartHeight - padding;
-                  const dateEmotions = emotionList.filter(emotion => (emotionByDate[date][emotion] || 0) > 0);
+                  const weekEmotions = emotionList.filter(emotion => (weeklyData[week][emotion] || 0) > 0);
                   
                   return (
-                    <g key={date}>
-                      {dateEmotions.map((emotion) => {
-                        const value = emotionByDate[date][emotion] || 0;
-                        const barHeight = (value / maxValue) * (chartHeight - padding * 2);
+                    <g key={week}>
+                      {weekEmotions.map((emotion) => {
+                        const value = weeklyData[week][emotion] || 0;
+                        const barHeight = (value / weeklyMaxValue) * (chartHeight - padding * 2);
                         const y = currentY - barHeight;
                         currentY = y;
                         
@@ -172,19 +234,19 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
                   );
                 })}
 
-                {/* X축 날짜 레이블 */}
-                {dates.map((date, idx) => {
+                {/* X축 주 레이블 */}
+                {weeks.map((week, idx) => {
                   const x = getX(idx);
                   return (
                     <text
-                      key={date}
+                      key={week}
                       x={x}
                       y={chartHeight - 10}
                       textAnchor="middle"
                       fontSize="10"
                       fill="#6B7280"
                     >
-                      {new Date(date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                      {getWeekLabel(week)}
                     </text>
                   );
                 })}
@@ -223,7 +285,7 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
             ) : emotionList.length === 0 ? (
               <p>감정 데이터가 없습니다.</p>
             ) : (
-              <p>최근 {days}일간의 기록이 없습니다.</p>
+              <p>최근 주간 기록이 없습니다.</p>
             )}
           </div>
         )}

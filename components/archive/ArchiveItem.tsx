@@ -64,7 +64,7 @@ export default function ArchiveItem({ record, onClick, index = 0 }: ArchiveItemP
           {/* 태그 - 맨 위에 표시 */}
           {record.tags && record.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
-              {record.tags.slice(0, 1).map((tag) => (
+              {record.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-gray-900 border border-amber-200"

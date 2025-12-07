@@ -34,7 +34,8 @@ export default function VisualBoard({ records, viewMode = 'calendar', onRecordCl
         ) : (
           sortedRecords.map((record, index) => {
             const { dayName, dayNumber } = getDateInfo(record.date);
-            const { imageUrl: defaultImage, hasValidImage } = getRecordImage(record, index);
+            // 아카이브 갤러리에서는 순차적으로 card1-29 할당
+            const { imageUrl: defaultImage, hasValidImage } = getRecordImage(record, index, true);
             const recordIsToday = isToday(record.date);
             
             return (

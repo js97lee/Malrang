@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Record } from '@/lib/types';
 
 interface RecordCardProps {
@@ -29,23 +29,35 @@ export default function RecordCard({
   enableDragDetection = false,
 }: RecordCardProps) {
   const [imageError, setImageError] = useState(false);
-  const [currentImage, setCurrentImage] = useState(
-    hasValidImage && record.images ? record.images[0] : defaultImage
-  );
+  // defaultImage는 이미 getRecordImage에서 처리된 최종 이미지 URL입니다
+  const [currentImage, setCurrentImage] = useState(defaultImage);
+  
+  // defaultImage가 변경되면 currentImage도 업데이트
+  useEffect(() => {
+    if (defaultImage && !imageError) {
+      setCurrentImage(defaultImage);
+    }
+  }, [defaultImage, imageError]);
   
   const cardMouseDownRef = useRef({ x: 0, y: 0, time: 0 });
 
   const handleImageError = () => {
-    if (!imageError && hasValidImage) {
+    // 이미지 로드 실패 시 기본 이미지로 fallback
+    if (!imageError) {
       setImageError(true);
-      setCurrentImage(defaultImage);
-    } else {
-      const selector = dataAttribute 
-        ? `[${dataAttribute}="${record.id}"] img`
-        : `[data-record-id="${record.id}"] img`;
-      const img = document.querySelector(selector) as HTMLImageElement;
-      if (img) {
-        img.style.display = 'none';
+      // defaultImage도 실패할 수 있으므로, card1.png로 최종 fallback
+      const fallbackImage = `/card1.png`;
+      if (currentImage !== fallbackImage) {
+        setCurrentImage(fallbackImage);
+      } else {
+        // 최종 fallback도 실패하면 이미지 숨기기
+        const selector = dataAttribute 
+          ? `[${dataAttribute}="${record.id}"] img`
+          : `[data-record-id="${record.id}"] img`;
+        const img = document.querySelector(selector) as HTMLImageElement;
+        if (img) {
+          img.style.display = 'none';
+        }
       }
     }
   };
@@ -96,6 +108,8 @@ export default function RecordCard({
         alt={record.summary || '기록'}
         className="absolute z-10 inset-0 w-full h-full object-cover"
         onError={handleImageError}
+        loading="lazy"
+        decoding="async"
       />
       
       {/* Black Dim 오버레이 */}

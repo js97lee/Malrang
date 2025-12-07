@@ -90,16 +90,9 @@ function PreviewPageContent() {
             onDownload={() => console.log('다운로드')}
           />
 
-          <div className="mt-6 space-y-3">
+          <div className="mt-6">
             <Button onClick={handleSubmit} className="w-full" variant="primary">
               완료
-            </Button>
-            <Button
-              onClick={() => router.push('/refeel/select-range')}
-              className="w-full"
-              variant="outline"
-            >
-              다시 만들기
             </Button>
           </div>
         </div>

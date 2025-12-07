@@ -167,7 +167,7 @@ export default function ReportPage() {
           <EmotionNotebook records={allRecords} />
 
           {/* 감정 흐름 */}
-          <EmotionFlowChart records={allRecords} days={365} showRepeatingThoughts={false} />
+          <EmotionFlowChart records={allRecords} days={365} showRepeatingThoughts={false} currentMonth={currentMonth} />
 
           {/* 키워드 */}
           <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200" style={{ boxShadow: 'none' }}>

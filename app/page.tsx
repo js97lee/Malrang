@@ -352,7 +352,7 @@ export default function Home() {
                 {/* 제목 */}
                 <div className="relative z-10 flex-1 pr-8">
                   <h2 className="text-3xl font-extrabold text-gray-900 leading-tight mb-4">
-                    지수님,<br />
+                    동현님,<br />
                     오늘 하루는 어떠셨나요?
                   </h2>
                   

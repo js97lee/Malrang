@@ -22,19 +22,121 @@ export default function RecordPage() {
   const [lastImageAnalysis, setLastImageAnalysis] = useState<string | null>(null);
 
   useEffect(() => {
-    // 랜덤 질문 선택
-    const randomQuestion = questionsData[Math.floor(Math.random() * questionsData.length)];
-    setCurrentQuestion(randomQuestion);
+    // 기본 시나리오 설정
+    const defaultQuestion = '오늘 어떤일이 있었나요?';
+    setCurrentQuestion(defaultQuestion);
     
     // 초기 질문 메시지 설정
     setMessages([
       {
         id: '1',
         type: 'question',
-        content: randomQuestion,
+        content: defaultQuestion,
         timestamp: new Date().toISOString(),
       },
     ]);
+    
+    // 자동으로 시나리오 진행
+    const scenario = [
+      {
+        delay: 1500,
+        message: {
+          id: '2',
+          type: 'answer' as const,
+          content: '오늘 지윤이 돌 기념으로 스튜디오에서 촬영이 있는 날이였어. 한복과 드레스를 입고 사진을 찍었어.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '3',
+          type: 'question' as const,
+          content: '아이가 사진촬영하는게 쉽지 않았을 텐데 너무 사랑스러워요😍 어떤 기분이었나요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '4',
+          type: 'answer' as const,
+          content: '응! 촬영에 울지않고 잘 참여해줘서 너무 고맙고 결과물도 상당히 마음에 들었어. 스튜디오에서 성장앨범 남기길 잘 했다는 생각이 들었어.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1500,
+        message: {
+          id: '4-1',
+          type: 'image' as const,
+          content: '사진을 첨부했습니다.',
+          timestamp: new Date().toISOString(),
+          images: ['/card1.png'],
+        },
+      },
+      {
+        delay: 500,
+        message: {
+          id: '4-2',
+          type: 'image' as const,
+          content: '사진을 첨부했습니다.',
+          timestamp: new Date().toISOString(),
+          images: ['/card1-2.jpeg'],
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '5',
+          type: 'question' as const,
+          content: '훌륭하네요! 좋은 추억이 될꺼같아요! 뿌듯하시겠어요! 자동태그로 베스트샷 등록해드릴까요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '6',
+          type: 'answer' as const,
+          content: '좋아, 앞으로도 지윤이 성장기록을 아카이빙해서 관리해줘.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '7',
+          type: 'question' as const,
+          content: '네, 알겠습니다.\n\n#지윤이 #돌기념촬영 #한복 #드레스 #사랑스러움 #뿌듯함 으로 기록할게요.\n\n앞으로도 좋은 추억 많이 쌓으시길 바래요😉',
+          timestamp: new Date().toISOString(),
+        },
+      },
+    ];
+    
+    const timeouts: NodeJS.Timeout[] = [];
+    let currentDelay = 0;
+    
+    scenario.forEach((step) => {
+      currentDelay += step.delay;
+      const timeout = setTimeout(() => {
+        setMessages((prev) => {
+          // 중복 방지: 같은 ID의 메시지가 이미 있는지 확인
+          const exists = prev.some(msg => msg.id === step.message.id);
+          if (exists) return prev;
+          return [...prev, step.message];
+        });
+        if (step.message.type === 'answer' || step.message.type === 'image') {
+          setConversationCount((prev) => prev + 1);
+        }
+      }, currentDelay);
+      timeouts.push(timeout);
+    });
+    
+    // cleanup 함수: 컴포넌트 언마운트 시 타이머 정리
+    return () => {
+      timeouts.forEach(timeout => clearTimeout(timeout));
+    };
   }, []);
 
   const handleSendMessage = async (text: string) => {

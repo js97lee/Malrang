@@ -69,11 +69,11 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
       >
         <div className="flex flex-col items-center justify-center px-6 py-8">
           {/* 캐릭터 이미지 */}
-          <div className="mb-6">
+          <div className="mb-8">
             <img 
               src={`/character-${characterColor}.png`}
               alt="말랑이 캐릭터" 
-              className="w-24 h-24 object-contain"
+              className="w-40 h-40 object-contain"
               onError={(e) => {
                 // 이미지가 없으면 기본 캐릭터로 fallback
                 const target = e.target as HTMLImageElement;
@@ -87,10 +87,10 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             <img 
               src="/logo.png" 
               alt="말랑이" 
-              className="w-auto mb-3 object-contain"
-              style={{ height: '32px' }}
+              className="w-auto mb-4 object-contain"
+              style={{ height: '48px' }}
             />
-            <p className="text-base font-bold text-[#5C4033] text-center">AI 기반 감성 아카이빙</p>
+            <p className="text-lg font-bold text-[#5C4033] text-center">AI 기반 감성 아카이빙</p>
           </div>
         </div>
       </div>

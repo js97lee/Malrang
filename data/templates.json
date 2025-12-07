@@ -3,7 +3,7 @@
     "id": "autobiography",
     "name": "개인의 자서전",
     "description": "얼굴이 나온 기록들을 모아 나만의 자서전을 만들어보세요",
-    "thumbnail": "/card4.jpeg",
+    "thumbnail": "/card4.png",
     "category": "autobiography",
     "defaultTags": ["얼굴", "사진", "자기", "나"]
   },
