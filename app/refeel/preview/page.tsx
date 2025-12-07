@@ -21,13 +21,17 @@ function PreviewPageContent() {
 
   useEffect(() => {
     const found = (templatesData as RefeelTemplate[]).find((t) => t.id === templateId);
-    setTemplate(found || null);
-    
-    // 생성 시뮬레이션
-    setTimeout(() => {
-      setIsGenerating(false);
-    }, 2000);
-  }, [templateId]);
+    if (found) {
+      setTemplate(found);
+      // 생성 시뮬레이션
+      setTimeout(() => {
+        setIsGenerating(false);
+      }, 2000);
+    } else {
+      // 템플릿을 찾을 수 없으면 릴스 홈으로 리다이렉트
+      router.push('/refeel');
+    }
+  }, [templateId, router]);
 
   const handleSubmit = () => {
     router.push('/refeel/submit');
@@ -36,11 +40,9 @@ function PreviewPageContent() {
   if (!template) {
     return (
       <MobileFrame>
-        <div className="p-6 text-center">
-          <p>템플릿을 찾을 수 없습니다.</p>
-          <Button onClick={() => router.push('/refeel')} className="mt-4">
-            돌아가기
-          </Button>
+        <div className="flex flex-col items-center justify-center h-screen p-6">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-500 mb-4"></div>
+          <p className="text-gray-700 font-medium">로딩 중...</p>
         </div>
       </MobileFrame>
     );
@@ -63,7 +65,7 @@ function PreviewPageContent() {
         <header className="bg-white border-b p-4">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => router.push('/refeel/select-range')}
+              onClick={() => router.push('/refeel')}
               className="text-gray-700 font-medium"
             >
               ← 뒤로
@@ -73,7 +75,7 @@ function PreviewPageContent() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto scrollbar-hide p-6">
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-2">생성된 스토리</h2>
             <p className="text-gray-700 text-sm font-medium">

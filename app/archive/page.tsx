@@ -12,6 +12,7 @@ import { Record } from '@/lib/types';
 import mockRecords from '@/data/mockRecords.json';
 import { getAllConversations, conversationToRecord } from '@/lib/utils/conversationStorage';
 import { recommendRecords } from '@/lib/utils/recommender';
+import { getRecordImage } from '@/lib/utils/recordUtils';
 
 export default function ArchivePage() {
   const router = useRouter();
@@ -54,13 +55,9 @@ export default function ArchivePage() {
   const handleRecordClick = (record: Record) => {
     // 갤러리 뷰일 때는 이미지 확대 팝업 표시
     if (viewMode === 'calendar') {
-      // 이미지 URL 찾기
-      const cardIndex = filteredRecords.findIndex(r => r.id === record.id);
-      const defaultImageIndex = (cardIndex % 5) + 1;
-      const defaultImage = `/card${defaultImageIndex}.png`;
-      const imageSrc = record.images && record.images.length > 0 ? record.images[0] : defaultImage;
-      
-      setExpandedImage({ src: imageSrc, record });
+      // getRecordImage 함수를 사용하여 일관된 이미지 가져오기
+      const { imageUrl } = getRecordImage(record, 0);
+      setExpandedImage({ src: imageUrl, record });
     } else {
       // 리스트 뷰일 때는 대화 기록 페이지로 이동
       router.push(`/archive/${record.id}`);

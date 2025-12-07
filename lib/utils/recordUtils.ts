@@ -4,10 +4,28 @@ import { Record } from '@/lib/types';
  * 기록의 이미지 URL을 가져옴 (fallback 포함)
  */
 export function getRecordImage(record: Record, index: number): { imageUrl: string; hasValidImage: boolean } {
-  const cardIndex = (index % 5) + 1;
-  const defaultImage = `/card${cardIndex}.png`;
-  const hasValidImage = !!(record.images && record.images.length > 0 && record.images[0]);
-  const imageUrl = hasValidImage && record.images ? record.images[0] : defaultImage;
+  // card1-18까지 순환하도록 변경 (각 카드가 1번씩만 나오도록)
+  // 레코드 ID를 기반으로 고유한 카드 인덱스 생성 (중복 방지)
+  const recordId = parseInt(record.id) || 0;
+  const cardIndex = ((recordId - 1) % 18) + 1;
+  
+  // card18은 .jpeg 확장자
+  const defaultImage = cardIndex === 18 
+    ? `/card${cardIndex}.jpeg` 
+    : cardIndex <= 7 
+      ? `/card${cardIndex}.png`
+      : `/card${cardIndex}.jpeg`;
+  
+  // record.images 배열에서 유효한 이미지 URL 찾기 (기본 카드 이미지 제외)
+  const validImage = record.images?.find(img => 
+    img && 
+    img.trim() !== '' && 
+    !img.startsWith('/card') && 
+    (img.startsWith('http') || img.startsWith('data:image'))
+  );
+  
+  const hasValidImage = !!validImage;
+  const imageUrl = hasValidImage ? validImage : defaultImage;
   
   return { imageUrl, hasValidImage };
 }
@@ -56,4 +74,9 @@ export function formatDateLong(dateString: string): string {
   const day = date.getDate();
   return `${year}. ${month}. ${day}.`;
 }
+
+
+
+
+
 

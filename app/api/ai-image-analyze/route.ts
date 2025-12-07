@@ -16,7 +16,7 @@ function getOpenAIClient(): OpenAI | null {
 
 /**
  * 이미지 분석 API
- * GPT-4 Vision을 사용하여 이미지를 분석하고 설명 생성
+ * GPT-4o-mini Vision을 사용하여 이미지를 분석하고 설명 생성 (비용 절감)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -76,13 +76,13 @@ export async function POST(request: NextRequest) {
 한국어로 답변해주세요. 사진의 모든 세부사항을 놓치지 말고 자세히 분석해주세요.`;
 
     console.log('📸 이미지 분석 API 호출:', { 
-      model: 'gpt-4o', 
+      model: 'gpt-4o-mini', 
       imageFormat: imageContent.substring(0, 50),
       promptLength: prompt.length 
     });
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o', // Vision 모델 사용
+      model: 'gpt-4o-mini', // 비용 절감을 위해 mini 모델 사용
       messages: [
         {
           role: 'user',
@@ -95,13 +95,13 @@ export async function POST(request: NextRequest) {
               type: 'image_url',
               image_url: {
                 url: imageContent,
-                detail: 'high', // 고해상도 분석
+                detail: 'low', // 비용 절감을 위해 low로 변경 (high는 매우 비쌈)
               },
             },
           ],
         },
       ],
-      max_tokens: 800, // 토큰 수 증가
+      max_tokens: 500, // 토큰 수 감소로 비용 절감
       temperature: 0.7,
     });
 

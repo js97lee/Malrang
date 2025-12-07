@@ -101,14 +101,17 @@ export default function RecordPage() {
     } catch (error: any) {
       console.error('❌ AI 응답 오류:', error);
       
-      let errorMessage = '죄송합니다. 응답을 생성하는 중 오류가 발생했습니다.';
+      // API에서 반환된 메시지 사용 (이미 사용자 친화적으로 처리됨)
+      let errorMessage = error.message || '네, 듣고 있어요. 계속 말씀해주세요.';
       
+      // 기술적인 에러 메시지는 숨기고 자연스러운 응답으로 변경
       if (error.message?.includes('API 키') || error.message?.includes('OPENAI_API_KEY')) {
-        errorMessage = 'API 설정을 확인해주세요. .env.local 파일에 OPENAI_API_KEY를 추가해주세요.';
+        errorMessage = '네, 계속 들려주세요. 오늘 하루는 어떠셨나요?';
       } else if (error.message?.includes('응답이 비어있습니다')) {
-        errorMessage = 'AI 응답을 받지 못했습니다. 잠시 후 다시 시도해주세요.';
-      } else if (error.message) {
-        errorMessage = `오류: ${error.message}`;
+        errorMessage = '네, 듣고 있어요. 더 자세히 이야기해주세요.';
+      } else if (error.message?.includes('사용 한도') || error.message?.includes('quota') || error.message?.includes('billing')) {
+        // API 한도 초과는 이미 chatClient에서 자연스러운 응답으로 처리됨
+        errorMessage = error.message;
       }
       
       const aiResponse: ChatMessage = {

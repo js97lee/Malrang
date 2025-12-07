@@ -145,26 +145,44 @@ ${hasImageAnalysis ? '\n**중요**: 사용자가 사진을 첨부했고, 대화 
     });
     
     // 에러 타입에 따른 사용자 친화적인 메시지 생성
-    let userFriendlyMessage = '죄송합니다. 응답을 생성하는 중 오류가 발생했습니다.';
+    let userFriendlyMessage = '';
     
-    if (error.status === 429) {
-      // 할당량 초과 에러
-      userFriendlyMessage = 'OpenAI API 사용 한도를 초과했습니다. 계정의 결제 정보와 사용량을 확인해주세요. 잠시 후 다시 시도해주시거나, OpenAI 대시보드에서 사용량을 확인해주세요.';
+    // 사용자의 마지막 메시지를 기반으로 대체 응답 생성
+    const lastUserMessage = request.messages
+      .filter(msg => msg.type === 'answer')
+      .slice(-1)[0]?.content || '';
+    
+    if (error.status === 429 || error.message?.includes('quota') || error.message?.includes('billing') || error.message?.includes('rate limit')) {
+      // 할당량 초과 에러 - 대체 응답 제공
+      if (lastUserMessage) {
+        // 사용자의 메시지에 공감하는 대체 응답
+        userFriendlyMessage = `알겠어요. ${lastUserMessage}에 대해 더 이야기해주세요. 어떤 기분이셨나요?`;
+      } else {
+        userFriendlyMessage = '네, 듣고 있어요. 더 자세히 이야기해주세요.';
+      }
     } else if (error.status === 401) {
       // 인증 에러
-      userFriendlyMessage = 'OpenAI API 키가 유효하지 않습니다. .env.local 파일의 OPENAI_API_KEY를 확인해주세요.';
+      userFriendlyMessage = '시스템 설정에 문제가 있어요. 잠시 후 다시 시도해주세요.';
     } else if (error.status === 500 || error.status >= 500) {
-      // 서버 에러
-      userFriendlyMessage = 'OpenAI 서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
-    } else if (error.message) {
-      // 기타 에러 (에러 메시지를 간단하게 표시)
-      const errorMsg = error.message;
-      if (errorMsg.includes('quota') || errorMsg.includes('billing')) {
-        userFriendlyMessage = 'OpenAI API 사용 한도를 초과했습니다. 계정의 결제 정보를 확인해주세요.';
-      } else if (errorMsg.includes('rate limit')) {
-        userFriendlyMessage = '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.';
+      // 서버 에러 - 대체 응답 제공
+      if (lastUserMessage) {
+        userFriendlyMessage = `그렇군요. ${lastUserMessage}에 대해 더 자세히 들려주세요.`;
       } else {
-        userFriendlyMessage = `오류가 발생했습니다: ${errorMsg.substring(0, 100)}`;
+        userFriendlyMessage = '네, 계속 들려주세요.';
+      }
+    } else if (error.message) {
+      // 기타 에러 - 대체 응답 제공
+      if (lastUserMessage) {
+        userFriendlyMessage = `알겠어요. ${lastUserMessage}에 대해 더 이야기해볼까요?`;
+      } else {
+        userFriendlyMessage = '네, 듣고 있어요. 계속 말씀해주세요.';
+      }
+    } else {
+      // 기본 대체 응답
+      if (lastUserMessage) {
+        userFriendlyMessage = `그렇군요. ${lastUserMessage}에 대해 더 자세히 들려주세요.`;
+      } else {
+        userFriendlyMessage = '네, 듣고 있어요. 오늘 하루는 어떠셨나요?';
       }
     }
     

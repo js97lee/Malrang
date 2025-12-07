@@ -33,7 +33,8 @@ export interface RefeelTemplate {
   name: string;
   description: string;
   thumbnail: string;
-  category: 'anniversary' | 'memorial' | 'highlight' | 'message';
+  category: 'autobiography' | 'family' | 'growth' | 'archive';
+  defaultTags?: string[];
 }
 
 export interface RefeelRequest {

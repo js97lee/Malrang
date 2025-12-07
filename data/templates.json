@@ -1,31 +1,35 @@
 [
   {
-    "id": "highlight-reel",
-    "name": "하이라이트 영상",
-    "description": "이번 달의 특별한 순간들을 모아서",
-    "thumbnail": "/templates/highlight.jpg",
-    "category": "highlight"
+    "id": "autobiography",
+    "name": "개인의 자서전",
+    "description": "얼굴이 나온 기록들을 모아 나만의 자서전을 만들어보세요",
+    "thumbnail": "/card4.jpeg",
+    "category": "autobiography",
+    "defaultTags": ["얼굴", "사진", "자기", "나"]
   },
   {
-    "id": "anniversary",
-    "name": "기념일 영상",
-    "description": "특별한 날을 기념하는 영상",
-    "thumbnail": "/templates/anniversary.jpg",
-    "category": "anniversary"
+    "id": "family-letter",
+    "name": "가족에게 쓰는 편지",
+    "description": "가족과 함께한 소중한 순간들을 모아 편지로 남겨보세요",
+    "thumbnail": "/card5.png",
+    "category": "family",
+    "defaultTags": ["가족", "부모", "형제", "자매", "할머니", "할아버지"]
   },
   {
-    "id": "memorial",
-    "name": "추모 영상",
-    "description": "소중한 추억을 담은 영상",
-    "thumbnail": "/templates/memorial.jpg",
-    "category": "memorial"
+    "id": "child-growth",
+    "name": "아이의 성장과정",
+    "description": "아이의 성장과 발달을 기록한 순간들을 모아보세요",
+    "thumbnail": "/card7.png",
+    "category": "growth",
+    "defaultTags": ["아이", "성장", "발달", "첫걸음", "첫말", "유아", "어린이"]
   },
   {
-    "id": "last-message",
-    "name": "마지막 메시지",
-    "description": "남기고 싶은 마지막 이야기",
-    "thumbnail": "/templates/message.jpg",
-    "category": "message"
+    "id": "yearly-archive",
+    "name": "일년 아카이브",
+    "description": "한 해 동안의 기록 중 각 월 대표 사진을 모아보세요",
+    "thumbnail": "/card14.jpeg",
+    "category": "archive",
+    "defaultTags": []
   }
 ]
 

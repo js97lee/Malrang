@@ -19,6 +19,7 @@ import TutorialBanner from '@/components/tutorial/TutorialBanner';
 import TutorialSection from '@/components/tutorial/TutorialSection';
 import { getCurrentTutorialStep, checkTutorialProgress } from '@/lib/utils/tutorial';
 import mockRecords from '@/data/mockRecords.json';
+import SplashScreen from '@/components/layout/SplashScreen';
 
 export default function Home() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function Home() {
   const [showReportPrompt, setShowReportPrompt] = useState(false);
   const [lastImageAnalysis, setLastImageAnalysis] = useState<string | null>(null); // 마지막 이미지 분석 결과 저장
   const [tutorialStep, setTutorialStep] = useState<any>(null);
+  const [showSplash, setShowSplash] = useState(true);
   
   const [allRecords, setAllRecords] = useState<Record[]>([]);
   
@@ -304,18 +306,26 @@ export default function Home() {
   };
 
   return (
-    <MobileFrame>
-      <div className="flex flex-col h-full">
+    <>
+      {showSplash && (
+        <SplashScreen onComplete={() => setShowSplash(false)} />
+      )}
+      <MobileFrame>
+        <div className="flex flex-col h-full">
         <main className="flex-1 overflow-y-auto scrollbar-hide px-6 pb-6 relative">
           {!isChatMode ? (
             <div className="relative">
               {/* 제목과 캐릭터를 묶은 영역 */}
               <div className="relative min-h-[150px] flex items-end mb-6">
-                {/* 배경 캐릭터 (랜덤) */}
+                {/* 배경 캐릭터 (스플래시 화면과 동일) */}
                 {(() => {
                   const characterColors = ['black', 'yellow', 'orange', 'green', 'blue'];
-                  const randomIndex = Math.floor(Math.random() * characterColors.length);
-                  const randomColor = characterColors[randomIndex];
+                  // 스플래시 화면에서 선택한 캐릭터 사용 (없으면 랜덤)
+                  const storedColor = typeof window !== 'undefined' ? localStorage.getItem('selectedCharacter') : null;
+                  const randomColor = (storedColor && characterColors.includes(storedColor)) 
+                    ? storedColor 
+                    : characterColors[Math.floor(Math.random() * characterColors.length)];
+                  
                   return (
                     <div className="absolute right-0 bottom-0 w-32 h-32 opacity-100 pointer-events-none scale-90">
                       <img
@@ -425,6 +435,36 @@ export default function Home() {
                     </div>
                   </div>
                 )}
+
+                {/* 서비스 설명 4가지 */}
+                <div className="mb-8 bg-gray-50 rounded-material-md p-5 border border-gray-200">
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center mt-0.5">
+                        <span className="text-orange-700 text-xs font-bold">1</span>
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">음성과 사진으로 하루를 기록해요</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center mt-0.5">
+                        <span className="text-orange-700 text-xs font-bold">2</span>
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">AI가 감정과 키워드를 분석해요</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center mt-0.5">
+                        <span className="text-orange-700 text-xs font-bold">3</span>
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">시간이 지나면 패턴이 보여요</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center mt-0.5">
+                        <span className="text-orange-700 text-xs font-bold">4</span>
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">특별한 순간을 영상으로 남겨요</p>
+                    </div>
+                  </div>
+                </div>
 
                 {/* 튜토리얼 섹션 */}
                 <TutorialSection />
@@ -567,6 +607,7 @@ export default function Home() {
         <BottomNavigation />
       </div>
     </MobileFrame>
+    </>
   );
 }
 
