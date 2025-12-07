@@ -6,6 +6,7 @@ import Tag from '@/components/ui/Tag';
 
 interface ChatThreadProps {
   messages: ChatMessage[];
+  staggerDelay?: number; // 메시지 간 딜레이 (ms), 0이면 순차 표시 안 함
 }
 
 interface TypingMessage {
@@ -15,62 +16,163 @@ interface TypingMessage {
   isComplete: boolean;
 }
 
-export default function ChatThread({ messages }: ChatThreadProps) {
+export default function ChatThread({ messages, staggerDelay = 0 }: ChatThreadProps) {
   const [typingMessages, setTypingMessages] = useState<Map<string, TypingMessage>>(new Map());
+  const [visibleMessageCount, setVisibleMessageCount] = useState<number>(staggerDelay > 0 ? 0 : messages.length);
+  const [completedMessages, setCompletedMessages] = useState<Set<string>>(new Set());
+
+  // 순차 표시 효과 - 각 메시지가 완료된 후 다음 메시지 표시
+  useEffect(() => {
+    if (staggerDelay > 0 && messages.length > 0) {
+      setVisibleMessageCount(1); // 첫 메시지부터 표시
+      setCompletedMessages(new Set());
+    } else {
+      setVisibleMessageCount(messages.length);
+    }
+  }, [messages, staggerDelay]);
 
   useEffect(() => {
-    messages.forEach((message) => {
-      // 사용자 메시지(answer 타입)에만 타이핑 애니메이션 적용
-      if (message.type === 'answer' && !typingMessages.has(message.id)) {
-        const fullText = message.content;
-        setTypingMessages((prev) => {
-          const newMap = new Map(prev);
-          newMap.set(message.id, {
-            id: message.id,
-            displayedText: '',
-            fullText,
-            isComplete: false,
-          });
-          return newMap;
-        });
-
-        // 타이핑 애니메이션 시작
-        let currentIndex = 0;
-        const typingInterval = setInterval(() => {
+    if (staggerDelay === 0) {
+      // staggerDelay가 0이면 모든 메시지에 타이핑 애니메이션 적용 (기존 로직)
+      messages.forEach((message) => {
+        if (message.type === 'answer' && !typingMessages.has(message.id)) {
+          const fullText = message.content;
           setTypingMessages((prev) => {
             const newMap = new Map(prev);
-            const typingMsg = newMap.get(message.id);
-            if (!typingMsg) {
-              clearInterval(typingInterval);
-              return prev;
-            }
-
-            if (currentIndex < fullText.length) {
-              currentIndex += 1;
-              newMap.set(message.id, {
-                ...typingMsg,
-                displayedText: fullText.substring(0, currentIndex),
-              });
-            } else {
-              newMap.set(message.id, {
-                ...typingMsg,
-                displayedText: fullText,
-                isComplete: true,
-              });
-              clearInterval(typingInterval);
-            }
+            newMap.set(message.id, {
+              id: message.id,
+              displayedText: '',
+              fullText,
+              isComplete: false,
+            });
             return newMap;
           });
-        }, 120); // 120ms마다 한 글자씩 (속도 조절 가능)
 
-        return () => clearInterval(typingInterval);
+          let currentIndex = 0;
+          const typingInterval = setInterval(() => {
+            setTypingMessages((prev) => {
+              const newMap = new Map(prev);
+              const typingMsg = newMap.get(message.id);
+              if (!typingMsg) {
+                clearInterval(typingInterval);
+                return prev;
+              }
+
+              if (currentIndex < fullText.length) {
+                currentIndex += 1;
+                newMap.set(message.id, {
+                  ...typingMsg,
+                  displayedText: fullText.substring(0, currentIndex),
+                });
+              } else {
+                newMap.set(message.id, {
+                  ...typingMsg,
+                  displayedText: fullText,
+                  isComplete: true,
+                });
+                clearInterval(typingInterval);
+              }
+              return newMap;
+            });
+          }, 120);
+        }
+      });
+      return;
+    }
+
+    // staggerDelay가 있으면 순차 표시
+    const visibleMessages = messages.slice(0, visibleMessageCount);
+    const lastMessage = visibleMessages[visibleMessages.length - 1];
+    
+    if (!lastMessage) return;
+
+    // 마지막 메시지가 answer 타입이고 타이핑이 완료되지 않았으면 타이핑 시작
+    if (lastMessage.type === 'answer' && !typingMessages.has(lastMessage.id)) {
+      const fullText = lastMessage.content;
+      setTypingMessages((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(lastMessage.id, {
+          id: lastMessage.id,
+          displayedText: '',
+          fullText,
+          isComplete: false,
+        });
+        return newMap;
+      });
+
+      let currentIndex = 0;
+      const typingInterval = setInterval(() => {
+        setTypingMessages((prev) => {
+          const newMap = new Map(prev);
+          const typingMsg = newMap.get(lastMessage.id);
+          if (!typingMsg) {
+            clearInterval(typingInterval);
+            return prev;
+          }
+
+          if (currentIndex < fullText.length) {
+            currentIndex += 1;
+            newMap.set(lastMessage.id, {
+              ...typingMsg,
+              displayedText: fullText.substring(0, currentIndex),
+            });
+          } else {
+            newMap.set(lastMessage.id, {
+              ...typingMsg,
+              displayedText: fullText,
+              isComplete: true,
+            });
+            clearInterval(typingInterval);
+            
+            // 타이핑 완료 후 staggerDelay 시간 후 다음 메시지 표시
+            setTimeout(() => {
+              if (visibleMessageCount < messages.length) {
+                setVisibleMessageCount(prev => prev + 1);
+              }
+            }, staggerDelay);
+          }
+          return newMap;
+        });
+      }, 120);
+    } else if (lastMessage.type !== 'answer') {
+      // AI 메시지나 이미지 메시지는 즉시 완료 처리 후 다음 메시지 표시
+      if (!completedMessages.has(lastMessage.id)) {
+        setCompletedMessages((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(lastMessage.id);
+          return newSet;
+        });
+        
+        setTimeout(() => {
+          if (visibleMessageCount < messages.length) {
+            setVisibleMessageCount(prev => prev + 1);
+          }
+        }, staggerDelay);
       }
-    });
-  }, [messages]);
+    } else if (lastMessage.type === 'answer') {
+      // answer 타입이고 타이핑이 완료되었으면 다음 메시지 표시
+      const typingMsg = typingMessages.get(lastMessage.id);
+      if (typingMsg?.isComplete && !completedMessages.has(lastMessage.id)) {
+        setCompletedMessages((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(lastMessage.id);
+          return newSet;
+        });
+        
+        setTimeout(() => {
+          if (visibleMessageCount < messages.length) {
+            setVisibleMessageCount(prev => prev + 1);
+          }
+        }, staggerDelay);
+      }
+    }
+  }, [messages, visibleMessageCount, staggerDelay, completedMessages, typingMessages]);
+
+  const visibleMessages = messages.slice(0, visibleMessageCount);
 
   return (
     <div className="space-y-4 pb-4">
-      {messages.map((message) => {
+      {visibleMessages.map((message) => {
         const typingMsg = typingMessages.get(message.id);
         const displayText = 
           message.type === 'answer' && typingMsg 

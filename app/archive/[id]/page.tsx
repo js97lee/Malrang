@@ -213,7 +213,7 @@ export default function ArchiveDetailPage() {
         <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-4 pb-6 relative">
           <div className="relative pb-20">
             {messages.length > 0 ? (
-              <ChatThread messages={messages} />
+              <ChatThread messages={messages} staggerDelay={1500} />
             ) : (
               <div className="text-center py-12 text-gray-500">
                 <p>대화 기록을 찾을 수 없습니다.</p>

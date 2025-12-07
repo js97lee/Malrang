@@ -19,17 +19,17 @@ export default function VideoCard({
   return (
     <div className="bg-surface rounded-material-md overflow-hidden transition-shadow">
       {thumbnail ? (
-        <div className="aspect-video bg-gray-200">
+        <div className="aspect-[3/4] bg-gray-200 overflow-hidden">
           <img src={thumbnail} alt={title} className="w-full h-full object-cover" />
         </div>
       ) : (
-        <div className="aspect-video bg-primary-50 flex items-center justify-center">
+        <div className="aspect-[3/4] bg-primary-50 flex items-center justify-center">
           <span className="text-6xl">🎬</span>
         </div>
       )}
       <div className="p-4">
-        <h3 className="font-semibold text-gray-800 mb-2">{title}</h3>
-        <p className="text-sm text-gray-600 mb-4">{description}</p>
+        <h3 className="font-semibold text-gray-800 mb-1">{title}</h3>
+        <p className="text-sm text-gray-600 mb-3">{description}</p>
         <div className="flex gap-2">
           {onView && (
             <Button onClick={onView} variant="primary" className="flex-1">

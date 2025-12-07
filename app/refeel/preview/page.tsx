@@ -11,6 +11,17 @@ import VideoCard from '@/components/refeel/VideoCard';
 import { RefeelTemplate } from '@/lib/types';
 import templatesData from '@/data/templates.json';
 
+// 템플릿 ID에 따른 비디오 매핑
+const getVideoByTemplate = (templateId: string | null) => {
+  if (templateId === 'family-letter') {
+    return { src: '/Video1.mp4', thumbnail: '/Video1-thum.png' };
+  } else if (templateId === 'autobiography') {
+    return { src: '/Video2.mp4', thumbnail: '/Video2-thum.png' };
+  }
+  // 기본값 (다른 템플릿의 경우)
+  return { src: '/Video1.mp4', thumbnail: '/Video1-thum.png' };
+};
+
 function PreviewPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,11 +29,16 @@ function PreviewPageContent() {
   
   const [template, setTemplate] = useState<RefeelTemplate | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
+  const [video, setVideo] = useState<{ src: string; thumbnail: string } | null>(null);
+  const [showVideoPopup, setShowVideoPopup] = useState(false);
 
   useEffect(() => {
     const found = (templatesData as RefeelTemplate[]).find((t) => t.id === templateId);
     if (found) {
       setTemplate(found);
+      // 템플릿에 맞는 비디오 설정
+      const videoData = getVideoByTemplate(templateId);
+      setVideo(videoData);
       // 생성 시뮬레이션
       setTimeout(() => {
         setIsGenerating(false);
@@ -75,7 +91,7 @@ function PreviewPageContent() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto scrollbar-hide p-6">
+        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 relative">
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-2">생성된 스토리</h2>
             <p className="text-gray-700 text-sm font-medium">
@@ -83,12 +99,48 @@ function PreviewPageContent() {
             </p>
           </div>
 
-          <VideoCard
-            title={template.name}
-            description="선택하신 기록들을 기반으로 제작된 기념 영상입니다."
-            onView={() => console.log('영상 보기')}
-            onDownload={() => console.log('다운로드')}
-          />
+          <div className="relative">
+            <VideoCard
+              title={template.name}
+              description="선택하신 기록들을 기반으로 제작된 기념 영상입니다."
+              thumbnail={video?.thumbnail}
+              onView={() => setShowVideoPopup(true)}
+              onDownload={() => {
+                if (video) {
+                  const link = document.createElement('a');
+                  link.href = video.src;
+                  link.download = `${template.name}.mp4`;
+                  link.click();
+                }
+              }}
+            />
+            
+            {/* 비디오 팝업 - 화이트 섹션 내에서만 표시 */}
+            {showVideoPopup && video && (
+              <div 
+                className="absolute inset-0 bg-white rounded-material-md overflow-hidden z-10"
+                onClick={() => setShowVideoPopup(false)}
+              >
+                <div className="relative w-full h-full bg-black flex items-center justify-center">
+                  <button
+                    onClick={() => setShowVideoPopup(false)}
+                    className="absolute top-4 right-4 text-white hover:text-gray-300 z-10 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  <video
+                    src={video.src}
+                    controls
+                    autoPlay
+                    className="w-full h-full object-contain"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="mt-6">
             <Button onClick={handleSubmit} className="w-full" variant="primary">

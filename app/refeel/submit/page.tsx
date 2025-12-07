@@ -32,7 +32,7 @@ export default function SubmitPage() {
             완성되면 알림을 드리겠습니다.
           </p>
           <div className="pt-4">
-            <Button onClick={() => router.push('/')} variant="primary" className="w-full">
+            <Button onClick={() => router.push('/refeel')} variant="primary" className="w-full">
               홈으로 가기
             </Button>
           </div>
