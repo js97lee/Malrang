@@ -10,8 +10,9 @@ import { RefeelTemplate } from '@/lib/types';
 import templatesData from '@/data/templates.json';
 
 const videos = [
-  { id: '1', src: '/Video1.mp4', thumbnail: '/Video1-thum.png', title: 'Video 1' },
-  { id: '2', src: '/Video2.mp4', thumbnail: '/Video2-thum.png', title: 'Video 2' },
+  { id: '1', src: '/Video1-가사.mp4', thumbnail: '/Video1-thum.png', title: 'Video 1' },
+  { id: '2', src: '/Video-2.mp4', thumbnail: '/Video2-thum.png', title: 'Video 2' },
+  { id: '3', src: '/Video1-편지.mp4', thumbnail: '/Video1-thum-편지.png', title: 'Video1-편지' },
 ];
 
 export default function RefeelPage() {
@@ -160,91 +161,50 @@ export default function RefeelPage() {
               </h2>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {/* Video1 */}
-              <div 
-                className="relative aspect-[3/4] rounded-lg overflow-hidden bg-gray-200 cursor-pointer group"
-                onClick={() => setShowVideoGallery(true)}
-              >
-                {/* 썸네일 이미지 */}
-                <img
-                  src="/Video1-thum.png"
-                  alt="Video1"
-                  className="w-full h-full object-cover"
-                />
-                {/* Black Dim 오버레이 */}
-                <div className="absolute inset-0 bg-black opacity-20 z-10"></div>
-                
-                {/* 비디오 (호버 시 재생) */}
-                <video
-                  src="/Video1.mp4"
-                  className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                  muted
-                  playsInline
-                  loop
-                  preload="metadata"
-                  onMouseEnter={(e) => {
-                    const video = e.currentTarget;
-                    video.play().catch(() => {});
-                  }}
-                  onMouseLeave={(e) => {
-                    const video = e.currentTarget;
-                    video.pause();
-                    video.currentTime = 0;
-                  }}
-                />
-                
-                {/* 재생 오버레이 */}
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none z-30">
-                  <div className="w-12 h-12 bg-white/80 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                    </svg>
+              {videos.map((video) => (
+                <div
+                  key={video.id}
+                  className="relative aspect-[3/4] rounded-lg overflow-hidden bg-gray-200 cursor-pointer group"
+                  onClick={() => setShowVideoGallery(true)}
+                >
+                  {/* 썸네일 이미지 */}
+                  <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Black Dim 오버레이 */}
+                  <div className="absolute inset-0 bg-black opacity-20 z-10"></div>
+                  
+                  {/* 비디오 (호버 시 재생) */}
+                  <video
+                    src={video.src}
+                    className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                    muted
+                    playsInline
+                    loop
+                    preload="metadata"
+                    onMouseEnter={(e) => {
+                      const video = e.currentTarget;
+                      video.play().catch(() => {});
+                    }}
+                    onMouseLeave={(e) => {
+                      const video = e.currentTarget;
+                      video.pause();
+                      video.currentTime = 0;
+                    }}
+                  />
+                  
+                  {/* 재생 오버레이 */}
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none z-30">
+                    <div className="w-12 h-12 bg-white/80 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Video2 */}
-              <div 
-                className="relative aspect-[3/4] rounded-lg overflow-hidden bg-gray-200 cursor-pointer group"
-                onClick={() => setShowVideoGallery(true)}
-              >
-                {/* 썸네일 이미지 */}
-                <img
-                  src="/Video2-thum.png"
-                  alt="Video2"
-                  className="w-full h-full object-cover"
-                />
-                {/* Black Dim 오버레이 */}
-                <div className="absolute inset-0 bg-black opacity-20 z-10"></div>
-                
-                {/* 비디오 (호버 시 재생) */}
-                <video
-                  src="/Video2.mp4"
-                  className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                  muted
-                  playsInline
-                  loop
-                  preload="metadata"
-                  onMouseEnter={(e) => {
-                    const video = e.currentTarget;
-                    video.play().catch(() => {});
-                  }}
-                  onMouseLeave={(e) => {
-                    const video = e.currentTarget;
-                    video.pause();
-                    video.currentTime = 0;
-                  }}
-                />
-                
-                {/* 재생 오버레이 */}
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none z-30">
-                  <div className="w-12 h-12 bg-white/80 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

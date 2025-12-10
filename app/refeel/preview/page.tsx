@@ -14,12 +14,12 @@ import templatesData from '@/data/templates.json';
 // 템플릿 ID에 따른 비디오 매핑
 const getVideoByTemplate = (templateId: string | null) => {
   if (templateId === 'family-letter') {
-    return { src: '/Video1.mp4', thumbnail: '/Video1-thum.png' };
+    return { src: '/Video1-가사.mp4', thumbnail: '/Video1-thum.png' };
   } else if (templateId === 'autobiography') {
-    return { src: '/Video2.mp4', thumbnail: '/Video2-thum.png' };
+    return { src: '/Video-2.mp4', thumbnail: '/Video2-thum.png' };
   }
   // 기본값 (다른 템플릿의 경우)
-  return { src: '/Video1.mp4', thumbnail: '/Video1-thum.png' };
+  return { src: '/Video1-가사.mp4', thumbnail: '/Video1-thum.png' };
 };
 
 function PreviewPageContent() {
