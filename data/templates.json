@@ -25,7 +25,7 @@
   },
   {
     "id": "yearly-archive",
-    "name": "일년 아카이브",
+    "name": "아카이브",
     "description": "한 해 동안의 기록 중 각 월 대표 사진을 모아보세요",
     "thumbnail": "/card14.jpeg",
     "category": "archive",

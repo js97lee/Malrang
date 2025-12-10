@@ -124,8 +124,8 @@ function SelectRangePageContent() {
 
   return (
     <MobileFrame>
-      <div className="flex flex-col h-screen">
-        <header className="bg-white border-b p-4">
+      <div className="flex flex-col h-full">
+        <header className="bg-white border-b p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <button
               onClick={() => router.push('/refeel')}
@@ -138,92 +138,35 @@ function SelectRangePageContent() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-6">
-          {/* 일년 아카이브: 월별 사진 선택 */}
-          {template?.id === 'yearly-archive' ? (
-            <div>
-              <h2 className="font-semibold mb-3">각 월 대표 사진 선택</h2>
-              <p className="text-sm text-gray-600 mb-4">각 월마다 1장씩 선택해주세요</p>
-              <div className="space-y-4">
-                {Object.entries(recordsByMonth)
-                  .sort(([a], [b]) => b.localeCompare(a))
-                  .map(([monthKey, monthRecords]) => {
-                    const selectedRecord = selectedMonthlyRecords.find(
-                      r => r.date.substring(0, 7) === monthKey
-                    );
-                    const monthDate = new Date(monthKey + '-01');
-                    const monthLabel = `${monthDate.getFullYear()}년 ${monthDate.getMonth() + 1}월`;
-                    
-                    return (
-                      <div key={monthKey} className="border rounded-lg p-4">
-                        <h3 className="font-medium mb-3">{monthLabel}</h3>
-                        <div className="grid grid-cols-3 gap-2">
-                          {monthRecords.slice(0, 6).map((record, idx) => {
-                            const isSelected = selectedRecord?.id === record.id;
-                            const { imageUrl } = getRecordImage(record, idx);
-                            
-                            return (
-                              <div
-                                key={record.id}
-                                onClick={() => handleMonthlyRecordSelect(monthKey, record)}
-                                className={`relative aspect-[4/5] rounded-lg overflow-hidden cursor-pointer border-2 transition ${
-                                  isSelected
-                                    ? 'border-primary-500 ring-2 ring-primary-200'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                }`}
-                              >
-                                <img
-                                  src={imageUrl}
-                                  alt={record.summary || '기록'}
-                                  className="w-full h-full object-cover"
-                                />
-                                {isSelected && (
-                                  <div className="absolute inset-0 bg-primary-500/20 flex items-center justify-center">
-                                    <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center">
-                                      <span className="text-white text-xs">✓</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        {selectedRecord && (
-                          <p className="text-xs text-gray-600 mt-2">
-                            선택됨: {new Date(selectedRecord.date).toLocaleDateString('ko-KR')}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide p-6 space-y-6 pb-24">
+          {/* 기간 선택 섹션 - 모든 템플릿에 공통 */}
+          <div>
+            <h2 className="font-semibold mb-3">기간 선택 (선택사항)</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1 font-medium">시작일</label>
+                <input
+                  type="date"
+                  value={dateRange.start}
+                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1 font-medium">종료일</label>
+                <input
+                  type="date"
+                  value={dateRange.end}
+                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
               </div>
             </div>
-          ) : (
-            <>
-              <div>
-                <h2 className="font-semibold mb-3">기간 선택 (선택사항)</h2>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm text-gray-700 mb-1 font-medium">시작일</label>
-                    <input
-                      type="date"
-                      value={dateRange.start}
-                      onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-700 mb-1 font-medium">종료일</label>
-                    <input
-                      type="date"
-                      value={dateRange.end}
-                      onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg"
-                    />
-                  </div>
-                </div>
-              </div>
+          </div>
 
+          {/* 아카이브: 태그 선택 및 월별 사진 선택 */}
+          {template?.id === 'yearly-archive' ? (
+            <>
               <div>
                 <h2 className="font-semibold mb-3">
                   태그 선택 {template?.defaultTags && template.defaultTags.length > 0 && '(관련 태그 자동 선택됨)'}
@@ -233,8 +176,9 @@ function SelectRangePageContent() {
                     {template.name}에 맞는 태그가 자동으로 선택되었습니다. 필요시 추가/제거할 수 있습니다.
                   </p>
                 )}
-                <div className="flex flex-wrap gap-2">
-                  {relevantTags.map((tag) => {
+                {/* 대표 태그 3개 */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {relevantTags.slice(0, 3).map((tag) => {
                     const isDefault = template?.defaultTags?.some(dt => 
                       tag.includes(dt) || dt.includes(tag)
                     );
@@ -255,12 +199,202 @@ function SelectRangePageContent() {
                     );
                   })}
                 </div>
+                {/* 나머지 태그들 접기/펼치기 */}
+                {relevantTags.length > 3 && (
+                  <details className="mb-3">
+                    <summary className="text-sm text-gray-600 cursor-pointer mb-2">나머지 태그 보기</summary>
+                    <div className="flex flex-wrap gap-2">
+                      {relevantTags.slice(3).map((tag) => {
+                        const isDefault = template?.defaultTags?.some(dt => 
+                          tag.includes(dt) || dt.includes(tag)
+                        );
+                        return (
+                          <Tag
+                            key={tag}
+                            onClick={() => handleTagToggle(tag)}
+                            className={
+                              selectedTags.includes(tag)
+                                ? 'bg-green-500 text-white'
+                                : isDefault
+                                ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                                : 'bg-gray-100 text-gray-700'
+                            }
+                          >
+                            {tag}
+                          </Tag>
+                        );
+                      })}
+                    </div>
+                  </details>
+                )}
                 {relevantTags.length === 0 && (
                   <p className="text-sm text-gray-500 mt-2">
                     관련 태그가 없습니다. 모든 태그를 확인하려면 아래를 보세요.
                   </p>
                 )}
-                {template?.defaultTags && template.defaultTags.length > 0 && allTags.length > relevantTags.length && (
+                {/* 다른 태그들 - 카드 뷰 */}
+                {allTags.length > relevantTags.length && (
+                  <details className="mt-4">
+                    <summary className="text-sm text-gray-600 cursor-pointer">더보기</summary>
+                    <div className="grid grid-cols-3 gap-3 mt-3">
+                      {allTags.filter(tag => !relevantTags.includes(tag)).map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() => handleTagToggle(tag)}
+                          className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
+                            selectedTags.includes(tag)
+                              ? 'bg-green-500 text-white border-green-500'
+                              : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </div>
+
+              <div>
+                <h2 className="font-semibold mb-3">각 월 대표 사진 선택</h2>
+                <p className="text-sm text-gray-600 mb-4">각 월마다 1장씩 선택해주세요</p>
+                <div className="space-y-4">
+                  {Object.entries(recordsByMonth)
+                    .sort(([a], [b]) => b.localeCompare(a))
+                    .map(([monthKey, monthRecords]) => {
+                      // 태그 필터링 적용
+                      const filteredRecords = selectedTags.length > 0
+                        ? monthRecords.filter(record => 
+                            record.tags.some(tag => selectedTags.includes(tag))
+                          )
+                        : monthRecords;
+                      
+                      const selectedRecord = selectedMonthlyRecords.find(
+                        r => r.date.substring(0, 7) === monthKey
+                      );
+                      const monthDate = new Date(monthKey + '-01');
+                      const monthLabel = `${monthDate.getFullYear()}년 ${monthDate.getMonth() + 1}월`;
+                      
+                      return (
+                        <div key={monthKey} className="border rounded-lg p-4">
+                          <h3 className="font-medium mb-3">{monthLabel}</h3>
+                          {filteredRecords.length === 0 ? (
+                            <p className="text-sm text-gray-500 text-center py-4">
+                              선택한 태그에 해당하는 기록이 없습니다.
+                            </p>
+                          ) : (
+                            <div className="grid grid-cols-3 gap-2">
+                              {filteredRecords.slice(0, 6).map((record, idx) => {
+                                const isSelected = selectedRecord?.id === record.id;
+                                const { imageUrl } = getRecordImage(record, idx);
+                                
+                                return (
+                                  <div
+                                    key={record.id}
+                                    onClick={() => handleMonthlyRecordSelect(monthKey, record)}
+                                    className={`relative aspect-[4/5] rounded-lg overflow-hidden cursor-pointer border-2 transition ${
+                                      isSelected
+                                        ? 'border-primary-500 ring-2 ring-primary-200'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                                  >
+                                    <img
+                                      src={imageUrl}
+                                      alt={record.summary || '기록'}
+                                      className="w-full h-full object-cover"
+                                    />
+                                    {isSelected && (
+                                      <div className="absolute inset-0 bg-primary-500/20 flex items-center justify-center">
+                                        <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center">
+                                          <span className="text-white text-xs">✓</span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {selectedRecord && (
+                            <p className="text-xs text-gray-600 mt-2">
+                              선택됨: {new Date(selectedRecord.date).toLocaleDateString('ko-KR')}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <h2 className="font-semibold mb-3">
+                  태그 선택 {template?.defaultTags && template.defaultTags.length > 0 && '(관련 태그 자동 선택됨)'}
+                </h2>
+                {template?.defaultTags && template.defaultTags.length > 0 && (
+                  <p className="text-sm text-gray-600 mb-3">
+                    {template.name}에 맞는 태그가 자동으로 선택되었습니다. 필요시 추가/제거할 수 있습니다.
+                  </p>
+                )}
+                {/* 대표 태그 3개 */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {relevantTags.slice(0, 3).map((tag) => {
+                    const isDefault = template?.defaultTags?.some(dt => 
+                      tag.includes(dt) || dt.includes(tag)
+                    );
+                    return (
+                      <Tag
+                        key={tag}
+                        onClick={() => handleTagToggle(tag)}
+                        className={
+                          selectedTags.includes(tag)
+                            ? 'bg-green-500 text-white'
+                            : isDefault
+                            ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                            : 'bg-green-100 text-green-700'
+                        }
+                      >
+                        {tag}
+                      </Tag>
+                    );
+                  })}
+                </div>
+                {/* 나머지 태그들 접기/펼치기 */}
+                {relevantTags.length > 3 && (
+                  <details className="mb-3">
+                    <summary className="text-sm text-gray-600 cursor-pointer mb-2">나머지 태그 보기</summary>
+                    <div className="flex flex-wrap gap-2">
+                      {relevantTags.slice(3).map((tag) => {
+                        const isDefault = template?.defaultTags?.some(dt => 
+                          tag.includes(dt) || dt.includes(tag)
+                        );
+                        return (
+                          <Tag
+                            key={tag}
+                            onClick={() => handleTagToggle(tag)}
+                            className={
+                              selectedTags.includes(tag)
+                                ? 'bg-green-500 text-white'
+                                : isDefault
+                                ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                                : 'bg-gray-100 text-gray-700'
+                            }
+                          >
+                            {tag}
+                          </Tag>
+                        );
+                      })}
+                    </div>
+                  </details>
+                )}
+                {relevantTags.length === 0 && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    관련 태그가 없습니다. 모든 태그를 확인하려면 아래를 보세요.
+                  </p>
+                )}
+                {/* 다른 태그들 */}
+                {allTags.length > relevantTags.length && (
                   <details className="mt-4">
                     <summary className="text-sm text-gray-600 cursor-pointer">모든 태그 보기</summary>
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -283,7 +417,9 @@ function SelectRangePageContent() {
               </div>
             </>
           )}
+        </div>
 
+        <div className="bg-white border-t p-6 flex-shrink-0">
           <Button onClick={handleSubmit} className="w-full" variant="primary">
             다음 단계
           </Button>

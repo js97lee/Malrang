@@ -17,6 +17,8 @@ const getVideoByTemplate = (templateId: string | null) => {
     return { src: '/Video1-가사.mp4', thumbnail: '/Video1-thum.png' };
   } else if (templateId === 'autobiography') {
     return { src: '/Video-2.mp4', thumbnail: '/Video2-thum.png' };
+  } else if (templateId === 'yearly-archive') {
+    return { src: '/Video1-편지.mp4', thumbnail: '/Video1-thum-편지.png' };
   }
   // 기본값 (다른 템플릿의 경우)
   return { src: '/Video1-가사.mp4', thumbnail: '/Video1-thum.png' };
