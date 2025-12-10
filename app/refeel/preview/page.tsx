@@ -104,13 +104,32 @@ function PreviewPageContent() {
               title={template.name}
               description="선택하신 기록들을 기반으로 제작된 기념 영상입니다."
               thumbnail={video?.thumbnail}
-              onView={() => setShowVideoPopup(true)}
+              onThumbnailClick={() => setShowVideoPopup(true)}
               onDownload={() => {
                 if (video) {
                   const link = document.createElement('a');
                   link.href = video.src;
                   link.download = `${template.name}.mp4`;
                   link.click();
+                }
+              }}
+              onShare={() => {
+                if (video) {
+                  // Web Share API 사용 (모바일)
+                  if (navigator.share) {
+                    navigator.share({
+                      title: template.name,
+                      text: '생성된 기념 영상을 공유합니다.',
+                      url: window.location.href,
+                    }).catch(() => {
+                      // 공유 취소 시 아무것도 하지 않음
+                    });
+                  } else {
+                    // Web Share API가 없으면 클립보드에 링크 복사
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                      alert('링크가 클립보드에 복사되었습니다.');
+                    });
+                  }
                 }
               }}
             />
@@ -142,7 +161,7 @@ function PreviewPageContent() {
             )}
           </div>
 
-          <div className="mt-6">
+          <div className="mt-2 pb-6 px-4">
             <Button onClick={handleSubmit} className="w-full" variant="primary">
               완료
             </Button>

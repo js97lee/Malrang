@@ -70,10 +70,17 @@ export default function ReportPage() {
     date.setMonth(date.getMonth() + 1);
     setCurrentMonth(date.toISOString().substring(0, 7));
   };
-  const report = useMemo(
-    () => generateMonthlyReport(allRecords, currentMonth),
-    [allRecords, currentMonth]
-  );
+  const report = useMemo(() => {
+    const generatedReport = generateMonthlyReport(allRecords, currentMonth);
+    // 기본 키워드 추가
+    const defaultKeywords = ['육아', '지윤', '여행', '가족'];
+    // 기존 키워드와 합치고 중복 제거
+    const allKeywords = [...new Set([...defaultKeywords, ...generatedReport.keywords])];
+    return {
+      ...generatedReport,
+      keywords: allKeywords,
+    };
+  }, [allRecords, currentMonth]);
   
   // 오늘의 대화가 있으면 하이라이트로 표시
   const todayHighlight = useMemo(() => {
@@ -172,11 +179,11 @@ export default function ReportPage() {
           {/* 키워드 */}
           <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200" style={{ boxShadow: 'none' }}>
             <h3 className="font-bold text-gray-900 mb-4">이달의 키워드</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {report.keywords.map((keyword) => (
                 <span
                   key={keyword}
-                  className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-gray-900 border border-amber-200"
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-medium bg-amber-50 text-gray-900 border border-amber-200"
                 >
                   {keyword}
                 </span>
