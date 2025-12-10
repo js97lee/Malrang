@@ -54,6 +54,12 @@ export default function ArchivePage() {
   const [recommendedRecords, setRecommendedRecords] = useState<Record[]>([]);
   
   const handleRecordClick = (record: Record) => {
+    // card1.png를 사용하는 기록(id: "1")을 클릭하면 기록 페이지의 예시1로 이동
+    if (record.images && record.images.includes('/card1.png') && record.id === '1') {
+      router.push('/record?scenario=example1');
+      return;
+    }
+    
     // 갤러리 뷰일 때는 이미지 확대 팝업 표시
     if (viewMode === 'calendar') {
       // getRecordImage 함수를 사용하여 일관된 이미지 가져오기

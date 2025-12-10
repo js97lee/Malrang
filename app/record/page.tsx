@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import MobileFrame from '@/components/layout/MobileFrame';
 import BottomNavigation from '@/components/layout/BottomNavigation';
 import PageHeader from '@/components/layout/PageHeader';
@@ -220,8 +220,9 @@ const scenarios = [
   },
 ];
 
-export default function RecordPage() {
+function RecordPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationCount, setConversationCount] = useState(0);
@@ -230,6 +231,17 @@ export default function RecordPage() {
   const [selectedScenarioIndex, setSelectedScenarioIndex] = useState(0);
   const [showScenarioMenu, setShowScenarioMenu] = useState(false);
   const [scenarioTimeouts, setScenarioTimeouts] = useState<NodeJS.Timeout[]>([]);
+
+  // URL 파라미터에서 시나리오 확인
+  useEffect(() => {
+    const scenarioParam = searchParams.get('scenario');
+    if (scenarioParam === 'example1') {
+      const example1Index = scenarios.findIndex(s => s.id === 'example1');
+      if (example1Index !== -1 && example1Index !== selectedScenarioIndex) {
+        setSelectedScenarioIndex(example1Index);
+      }
+    }
+  }, [searchParams]);
 
   // 시나리오 변경 핸들러 - 완전히 독립적인 시나리오로 분리
   const handleScenarioChange = (index: number) => {
@@ -608,6 +620,21 @@ export default function RecordPage() {
         <BottomNavigation />
       </div>
     </MobileFrame>
+  );
+}
+
+export default function RecordPage() {
+  return (
+    <Suspense fallback={
+      <MobileFrame>
+        <div className="flex flex-col items-center justify-center h-screen p-6">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-500 mb-4"></div>
+          <p className="text-gray-700 font-medium">로딩 중...</p>
+        </div>
+      </MobileFrame>
+    }>
+      <RecordPageContent />
+    </Suspense>
   );
 }
 
