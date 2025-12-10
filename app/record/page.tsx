@@ -13,35 +13,15 @@ import { ChatMessage } from '@/lib/types';
 import questionsData from '@/data/questions.json';
 import { checkTutorialProgress } from '@/lib/utils/tutorial';
 
-export default function RecordPage() {
-  const router = useRouter();
-  const [currentQuestion, setCurrentQuestion] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [conversationCount, setConversationCount] = useState(0);
-  const [showReportPrompt, setShowReportPrompt] = useState(false);
-  const [lastImageAnalysis, setLastImageAnalysis] = useState<string | null>(null);
-
-  useEffect(() => {
-    // 기본 시나리오 설정
-    const defaultQuestion = '오늘 어떤일이 있었나요?';
-    setCurrentQuestion(defaultQuestion);
-    
-    // 초기 질문 메시지 설정
-    setMessages([
+// 시나리오 정의
+const scenarios = [
+  {
+    id: 'example1',
+    name: '예시1',
+    question: '오늘 어떤일이 있었나요?',
+    steps: [
       {
-        id: '1',
-        type: 'question',
-        content: defaultQuestion,
-        timestamp: new Date().toISOString(),
-      },
-    ]);
-    
-    // 자동으로 시나리오 진행
-    // 각 메시지의 delay는 이전 메시지의 타이핑 시간 + 2초를 고려하여 계산
-    // 타이핑 속도: 120ms per character
-    const scenario = [
-      {
-        delay: 1500, // 첫 사용자 메시지까지 1.5초
+        delay: 1500,
         message: {
           id: '2',
           type: 'answer' as const,
@@ -50,7 +30,6 @@ export default function RecordPage() {
         },
       },
       {
-        // 메시지 2 타이핑 시간: 약 50자 * 120ms = 6000ms + 2초 = 8000ms
         delay: 8000,
         message: {
           id: '3',
@@ -60,7 +39,7 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 2000, // AI 응답 후 2초
+        delay: 2000,
         message: {
           id: '4',
           type: 'answer' as const,
@@ -69,7 +48,6 @@ export default function RecordPage() {
         },
       },
       {
-        // 메시지 4 타이핑 시간: 약 70자 * 120ms = 8400ms + 2초 = 10400ms
         delay: 10400,
         message: {
           id: '4-1',
@@ -80,7 +58,7 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 500, // 이미지 후 0.5초
+        delay: 500,
         message: {
           id: '4-2',
           type: 'image' as const,
@@ -90,7 +68,7 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 2000, // 이미지 후 2초
+        delay: 2000,
         message: {
           id: '5',
           type: 'question' as const,
@@ -99,7 +77,7 @@ export default function RecordPage() {
         },
       },
       {
-        delay: 2000, // AI 응답 후 2초
+        delay: 2000,
         message: {
           id: '6',
           type: 'answer' as const,
@@ -108,7 +86,6 @@ export default function RecordPage() {
         },
       },
       {
-        // 메시지 6 타이핑 시간: 약 30자 * 120ms = 3600ms + 2초 = 5600ms
         delay: 5600,
         message: {
           id: '7',
@@ -117,19 +94,203 @@ export default function RecordPage() {
           timestamp: new Date().toISOString(),
         },
       },
-    ];
+    ],
+  },
+  {
+    id: 'example2',
+    name: '예시2',
+    question: '오늘 어떤일이 있었나요?',
+    steps: [
+      {
+        delay: 1500,
+        message: {
+          id: '2',
+          type: 'answer' as const,
+          content: '오랜만에 내 유년 시절 사진을 찾았어. 저장해줘',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        // 메시지 2 타이핑 시간: 약 30자 * 120ms = 3600ms + 2초 = 5600ms
+        delay: 5600,
+        message: {
+          id: '3',
+          type: 'question' as const,
+          content: '네. 저장해 둘게요. 베스트샷을 선택하겠습니까?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '4',
+          type: 'answer' as const,
+          content: '유년 시절 사진이 많이 없으니까 둘다 해줘.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        // 메시지 4 타이핑 시간: 약 30자 * 120ms = 3600ms + 2초 = 5600ms
+        delay: 5600,
+        message: {
+          id: '4-1',
+          type: 'image' as const,
+          content: '사진을 첨부했습니다.',
+          timestamp: new Date().toISOString(),
+          images: ['/card22.jpeg'],
+        },
+      },
+      {
+        delay: 500,
+        message: {
+          id: '4-2',
+          type: 'image' as const,
+          content: '사진을 첨부했습니다.',
+          timestamp: new Date().toISOString(),
+          images: ['/card30.jpeg'],
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '5',
+          type: 'question' as const,
+          content: '네. 어릴때 사진을 찾고 기분이 어떠셨나요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '6',
+          type: 'answer' as const,
+          content: '어른이 되고 보니 새로웠어. 근데 필름 사진이라 화질이랑, 영상으로 남아있지 않아서 조금 아쉬웠어.\n\n요즘은 영상으로 많이 찍잖아.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        // 메시지 6 타이핑 시간: 약 60자 * 120ms = 7200ms + 2초 = 9200ms
+        delay: 9200,
+        message: {
+          id: '7',
+          type: 'question' as const,
+          content: '주마등 영상을 만들때는 선택한 사진 일부를 움직이게 할수 있어요. 영상으로 만들 사진을 미리 선택하시겠어요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '8',
+          type: 'answer' as const,
+          content: '좋아. 엄마랑 찍은 사진으로 움직이게 해줘. 어렸을땐 내가 개구장이었으니까 엄마랑 같이 좌우로 까딱거리면서 움직였으면 좋겠어.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        // 메시지 8 타이핑 시간: 약 60자 * 120ms = 7200ms + 2초 = 9200ms
+        delay: 9200,
+        message: {
+          id: '9',
+          type: 'question' as const,
+          content: '좋아요. 유년시절에 대해 남기고 싶은 기억이나 특징이 있나요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '10',
+          type: 'answer' as const,
+          content: '웃음이 많았고 아빠랑 똑 닮았었어',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        // 메시지 10 타이핑 시간: 약 20자 * 120ms = 2400ms + 2초 = 4400ms
+        delay: 4400,
+        message: {
+          id: '11',
+          type: 'question' as const,
+          content: '기억해 둘게요. 베스트 샷으로 유년시절부터 지금까지 주마등 영상을 만들 수 있어요.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+    ],
+  },
+];
+
+export default function RecordPage() {
+  const router = useRouter();
+  const [currentQuestion, setCurrentQuestion] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [conversationCount, setConversationCount] = useState(0);
+  const [showReportPrompt, setShowReportPrompt] = useState(false);
+  const [lastImageAnalysis, setLastImageAnalysis] = useState<string | null>(null);
+  const [selectedScenarioIndex, setSelectedScenarioIndex] = useState(0);
+  const [showScenarioMenu, setShowScenarioMenu] = useState(false);
+  const [scenarioTimeouts, setScenarioTimeouts] = useState<NodeJS.Timeout[]>([]);
+
+  // 시나리오 변경 핸들러 - 완전히 독립적인 시나리오로 분리
+  const handleScenarioChange = (index: number) => {
+    setShowScenarioMenu(false);
     
+    // 이전 시나리오의 모든 타이머 정리
+    scenarioTimeouts.forEach(timeout => clearTimeout(timeout));
+    setScenarioTimeouts([]);
+    
+    // 모든 상태를 완전히 초기화 (독립적인 시나리오)
+    setMessages([]);
+    setConversationCount(0);
+    setShowReportPrompt(false);
+    setLastImageAnalysis(null);
+    setCurrentQuestion('');
+    
+    // 시나리오 인덱스 변경 (useEffect가 새 시나리오를 시작함)
+    setSelectedScenarioIndex(index);
+  };
+
+  useEffect(() => {
+    const selectedScenario = scenarios[selectedScenarioIndex];
+    if (!selectedScenario) return;
+    
+    // 이전 시나리오의 타이머가 있다면 정리
+    scenarioTimeouts.forEach(timeout => clearTimeout(timeout));
+    setScenarioTimeouts([]);
+    
+    // 완전히 새로운 시나리오 시작 - 모든 상태 초기화
+    setCurrentQuestion(selectedScenario.question);
+    setConversationCount(0);
+    setShowReportPrompt(false);
+    setLastImageAnalysis(null);
+    
+    // 초기 질문 메시지 설정
+    setMessages([
+      {
+        id: `${selectedScenario.id}-1`,
+        type: 'question',
+        content: selectedScenario.question,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+    
+    // 자동으로 시나리오 진행
     const timeouts: NodeJS.Timeout[] = [];
     let currentDelay = 0;
     
-    scenario.forEach((step) => {
+    selectedScenario.steps.forEach((step) => {
       currentDelay += step.delay;
       const timeout = setTimeout(() => {
         setMessages((prev) => {
-          // 중복 방지: 같은 ID의 메시지가 이미 있는지 확인
-          const exists = prev.some(msg => msg.id === step.message.id);
+          // 시나리오별 고유 ID로 중복 방지
+          const messageId = `${selectedScenario.id}-${step.message.id}`;
+          const exists = prev.some(msg => msg.id === messageId);
           if (exists) return prev;
-          return [...prev, step.message];
+          
+          return [...prev, {
+            ...step.message,
+            id: messageId, // 시나리오 ID를 포함한 고유 ID
+          }];
         });
         if (step.message.type === 'answer' || step.message.type === 'image') {
           setConversationCount((prev) => prev + 1);
@@ -138,11 +299,13 @@ export default function RecordPage() {
       timeouts.push(timeout);
     });
     
-    // cleanup 함수: 컴포넌트 언마운트 시 타이머 정리
+    setScenarioTimeouts(timeouts);
+    
+    // cleanup 함수: 시나리오 변경 시 모든 타이머 정리
     return () => {
       timeouts.forEach(timeout => clearTimeout(timeout));
     };
-  }, []);
+  }, [selectedScenarioIndex]);
 
   const handleSendMessage = async (text: string) => {
     const newMessage: ChatMessage = {
@@ -328,7 +491,47 @@ export default function RecordPage() {
   return (
     <MobileFrame>
       <div className="flex flex-col h-full">
-        <PageHeader title="오늘의 기록" />
+        <PageHeader 
+          title="오늘의 기록" 
+          rightAction={
+            <div className="relative">
+              <button
+                onClick={() => setShowScenarioMenu(!showScenarioMenu)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors flex items-center gap-1"
+              >
+                {scenarios[selectedScenarioIndex].name}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {/* 시나리오 메뉴 */}
+              {showScenarioMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowScenarioMenu(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+                    {scenarios.map((scenario, index) => (
+                      <button
+                        key={scenario.id}
+                        onClick={() => handleScenarioChange(index)}
+                        className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                          selectedScenarioIndex === index
+                            ? 'bg-primary-50 text-primary-700 font-medium'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {scenario.name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          }
+        />
         <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-4 pb-6 relative">
           
           <div className="relative pb-20">

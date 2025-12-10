@@ -7,6 +7,7 @@ import BottomNavigation from '@/components/layout/BottomNavigation';
 import PageHeader from '@/components/layout/PageHeader';
 import ArchiveList from '@/components/archive/ArchiveList';
 import ArchiveFilters from '@/components/archive/ArchiveFilters';
+import ArchiveKeywordGroups from '@/components/archive/ArchiveKeywordGroups';
 import VisualBoard from '@/components/archive/VisualBoard';
 import { Record } from '@/lib/types';
 import mockRecords from '@/data/mockRecords.json';
@@ -164,8 +165,12 @@ export default function ArchivePage() {
                   <h3 className="text-lg font-semibold mb-3 text-gray-900">추천 기록</h3>
                   <ArchiveList records={recommendedRecords} onRecordClick={handleRecordClick} />
                 </div>
-              ) : (
+              ) : selectedTags.length > 0 || searchQuery ? (
+                // 필터가 적용된 경우 리스트 뷰
                 <ArchiveList records={filteredRecords} onRecordClick={handleRecordClick} />
+              ) : (
+                // 필터가 없는 경우 키워드별 카드 그룹 뷰
+                <ArchiveKeywordGroups records={records} onRecordClick={handleRecordClick} />
               )}
             </>
           )}

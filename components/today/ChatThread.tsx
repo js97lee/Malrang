@@ -26,58 +26,77 @@ export default function ChatThread({ messages, staggerDelay = 0 }: ChatThreadPro
     if (staggerDelay > 0 && messages.length > 0) {
       setVisibleMessageCount(1); // 첫 메시지부터 표시
       setCompletedMessages(new Set());
+      setTypingMessages(new Map());
     } else {
       setVisibleMessageCount(messages.length);
     }
-  }, [messages, staggerDelay]);
+  }, [messages.length, staggerDelay]);
 
   useEffect(() => {
     if (staggerDelay === 0) {
       // staggerDelay가 0이면 모든 메시지에 타이핑 애니메이션 적용 (기존 로직)
+      const intervals: NodeJS.Timeout[] = [];
+      
       messages.forEach((message) => {
-        if (message.type === 'answer' && !typingMessages.has(message.id)) {
-          const fullText = message.content;
-          setTypingMessages((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(message.id, {
-              id: message.id,
-              displayedText: '',
-              fullText,
-              isComplete: false,
-            });
-            return newMap;
-          });
-
-          let currentIndex = 0;
-          const typingInterval = setInterval(() => {
+        if (message.type === 'answer') {
+          // 이미 타이핑이 시작되었는지 확인
+          const existingTyping = typingMessages.get(message.id);
+          if (existingTyping && existingTyping.isComplete) {
+            return; // 이미 완료된 메시지는 스킵
+          }
+          
+          if (!existingTyping || existingTyping.displayedText === '') {
+            const fullText = message.content;
+            
+            // 타이핑 상태 초기화
             setTypingMessages((prev) => {
               const newMap = new Map(prev);
-              const typingMsg = newMap.get(message.id);
-              if (!typingMsg) {
-                clearInterval(typingInterval);
-                return prev;
-              }
-
-              if (currentIndex < fullText.length) {
-                currentIndex += 1;
-                newMap.set(message.id, {
-                  ...typingMsg,
-                  displayedText: fullText.substring(0, currentIndex),
-                });
-              } else {
-                newMap.set(message.id, {
-                  ...typingMsg,
-                  displayedText: fullText,
-                  isComplete: true,
-                });
-                clearInterval(typingInterval);
-              }
+              newMap.set(message.id, {
+                id: message.id,
+                displayedText: '',
+                fullText,
+                isComplete: false,
+              });
               return newMap;
             });
-          }, 120);
+
+            let currentIndex = 0;
+            const typingInterval = setInterval(() => {
+              setTypingMessages((prev) => {
+                const newMap = new Map(prev);
+                const typingMsg = newMap.get(message.id);
+                if (!typingMsg) {
+                  clearInterval(typingInterval);
+                  return prev;
+                }
+
+                if (currentIndex < fullText.length) {
+                  currentIndex += 1;
+                  newMap.set(message.id, {
+                    ...typingMsg,
+                    displayedText: fullText.substring(0, currentIndex),
+                  });
+                } else {
+                  newMap.set(message.id, {
+                    ...typingMsg,
+                    displayedText: fullText,
+                    isComplete: true,
+                  });
+                  clearInterval(typingInterval);
+                }
+                return newMap;
+              });
+            }, 120);
+            
+            intervals.push(typingInterval);
+          }
         }
       });
-      return;
+      
+      // cleanup 함수
+      return () => {
+        intervals.forEach(interval => clearInterval(interval));
+      };
     }
 
     // staggerDelay가 있으면 순차 표시
@@ -143,11 +162,13 @@ export default function ChatThread({ messages, staggerDelay = 0 }: ChatThreadPro
           return newSet;
         });
         
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
           if (visibleMessageCount < messages.length) {
             setVisibleMessageCount(prev => prev + 1);
           }
         }, staggerDelay);
+        
+        return () => clearTimeout(timeout);
       }
     } else if (lastMessage.type === 'answer') {
       // answer 타입이고 타이핑이 완료되었으면 다음 메시지 표시
@@ -159,14 +180,16 @@ export default function ChatThread({ messages, staggerDelay = 0 }: ChatThreadPro
           return newSet;
         });
         
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
           if (visibleMessageCount < messages.length) {
             setVisibleMessageCount(prev => prev + 1);
           }
         }, staggerDelay);
+        
+        return () => clearTimeout(timeout);
       }
     }
-  }, [messages, visibleMessageCount, staggerDelay, completedMessages, typingMessages]);
+  }, [messages, visibleMessageCount, staggerDelay, completedMessages]);
 
   const visibleMessages = messages.slice(0, visibleMessageCount);
 
