@@ -218,6 +218,239 @@ const scenarios = [
       },
     ],
   },
+  {
+    id: 'example1-2',
+    name: '예시1-2',
+    question: '', // 사용자가 먼저 사진을 첨부하므로 초기 질문 없음
+    steps: [
+      {
+        delay: 0, // 즉시 시작 (사용자가 이미 사진을 첨부한 상태)
+        message: {
+          id: '1-2-1',
+          type: 'image' as const,
+          content: '사진을 첨부했습니다.',
+          timestamp: new Date().toISOString(),
+          images: ['/card31.jpeg'],
+        },
+      },
+      {
+        delay: 500,
+        message: {
+          id: '1-2-2',
+          type: 'image' as const,
+          content: '사진을 첨부했습니다.',
+          timestamp: new Date().toISOString(),
+          images: ['/card32.jpeg'],
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '1-2-3',
+          type: 'question' as const,
+          content: '오늘은 지윤이가 웃는얼굴이에요.\n\n#지윤 #딸 #웃음 로 등록할까요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '1-2-4',
+          type: 'answer' as const,
+          content: '응',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '1-2-5',
+          type: 'question' as const,
+          content: '베스트샷 등록하시겠어요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '1-2-6',
+          type: 'answer' as const,
+          content: '응',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '1-2-7',
+          type: 'question' as const,
+          content: '등록 완료하였습니다. 오늘은 어떤 상황이었나요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '1-2-8',
+          type: 'answer' as const,
+          content: '안돼 라는 말을 배워서 하루 종일 힘들었어. 분위기가 안좋았는데 남편이 하이파이브 하니까 장난꾸러기 처럼 씩 웃으면서 인사하더라구. 사르르 녹아서 웃었지 뭐.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '1-2-9',
+          type: 'question' as const,
+          content: '기분이 풀려서 다행이에요.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '1-2-10',
+          type: 'answer' as const,
+          content: '응 지윤이는 특히나 사람들을 행복하게 하는 사람이야. 엄마 눈치보고 또 웃게 해주잖아.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+    ],
+  },
+  {
+    id: 'example2-2',
+    name: '예시2-2',
+    question: '', // 사용자가 먼저 사진을 첨부하므로 초기 질문 없음
+    steps: [
+      {
+        delay: 0, // 즉시 시작 (사용자가 이미 사진을 첨부한 상태)
+        message: {
+          id: '2-2-1',
+          type: 'image' as const,
+          content: '사진을 첨부했습니다.',
+          timestamp: new Date().toISOString(),
+          images: ['/card33.jpeg'],
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-2',
+          type: 'question' as const,
+          content: '신나보여요. 텍스트를 인지해보니 승진하셨군요.\n\n#신남 #승진 #축하 #인정 #행복 #회사 로 등록할까요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-3',
+          type: 'answer' as const,
+          content: '응',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-4',
+          type: 'question' as const,
+          content: '베스트샷 등록하시겠어요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-5',
+          type: 'answer' as const,
+          content: '응',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-6',
+          type: 'question' as const,
+          content: '등록 완료하였습니다. 오늘은 어떤 상황이었나요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-7',
+          type: 'answer' as const,
+          content: '올해 첫 팀장 직책을 달았어',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-8',
+          type: 'question' as const,
+          content: '축하합니다. 회사에서 인정을 받으셨네요',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-9',
+          type: 'answer' as const,
+          content: '가족들 덕분이지ㅎㅎ 나 혼자 타지에 있는데 잘 이해해주고.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-10',
+          type: 'question' as const,
+          content: '#가족 도 태그로 넣을까요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-11',
+          type: 'answer' as const,
+          content: '응',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-12',
+          type: 'question' as const,
+          content: '가족들에게 하고 싶은말이 있나요?',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 1000,
+        message: {
+          id: '2-2-13',
+          type: 'answer' as const,
+          content: '...',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      {
+        delay: 2000,
+        message: {
+          id: '2-2-14',
+          type: 'question' as const,
+          content: '장시간 대화가 없어 자동 종료합니다. 업데이트 완료 되었습니다.',
+          timestamp: new Date().toISOString(),
+        },
+      },
+    ],
+  },
 ];
 
 function RecordPageContent() {
@@ -235,10 +468,10 @@ function RecordPageContent() {
   // URL 파라미터에서 시나리오 확인
   useEffect(() => {
     const scenarioParam = searchParams.get('scenario');
-    if (scenarioParam === 'example1') {
-      const example1Index = scenarios.findIndex(s => s.id === 'example1');
-      if (example1Index !== -1 && example1Index !== selectedScenarioIndex) {
-        setSelectedScenarioIndex(example1Index);
+    if (scenarioParam) {
+      const scenarioIndex = scenarios.findIndex(s => s.id === scenarioParam);
+      if (scenarioIndex !== -1 && scenarioIndex !== selectedScenarioIndex) {
+        setSelectedScenarioIndex(scenarioIndex);
       }
     }
   }, [searchParams]);
@@ -276,15 +509,19 @@ function RecordPageContent() {
     setShowReportPrompt(false);
     setLastImageAnalysis(null);
     
-    // 초기 질문 메시지 설정
-    setMessages([
-      {
-        id: `${selectedScenario.id}-1`,
-        type: 'question',
-        content: selectedScenario.question,
-        timestamp: new Date().toISOString(),
-      },
-    ]);
+    // 초기 메시지 설정 (예시1-2는 사진부터 시작하므로 질문 없음)
+    if (selectedScenario.question) {
+      setMessages([
+        {
+          id: `${selectedScenario.id}-1`,
+          type: 'question',
+          content: selectedScenario.question,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } else {
+      setMessages([]);
+    }
     
     // 자동으로 시나리오 진행
     const timeouts: NodeJS.Timeout[] = [];
@@ -547,7 +784,7 @@ function RecordPageContent() {
         <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-4 pb-6 relative">
           
           <div className="relative pb-20">
-            <ChatThread messages={messages} />
+            <ChatThread messages={messages} staggerDelay={1000} />
             
             {/* 리포트 준비 완료 플로팅 버튼 */}
             {showReportPrompt && (

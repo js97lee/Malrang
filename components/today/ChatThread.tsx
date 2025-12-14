@@ -6,202 +6,37 @@ import Tag from '@/components/ui/Tag';
 
 interface ChatThreadProps {
   messages: ChatMessage[];
-  staggerDelay?: number; // 메시지 간 딜레이 (ms), 0이면 순차 표시 안 함
+  staggerDelay?: number; // 메시지 간 딜레이 (ms), 기본값 1000ms (1초)
 }
 
-interface TypingMessage {
-  id: string;
-  displayedText: string;
-  fullText: string;
-  isComplete: boolean;
-}
+export default function ChatThread({ messages, staggerDelay = 1000 }: ChatThreadProps) {
+  const [visibleMessageCount, setVisibleMessageCount] = useState<number>(0);
 
-export default function ChatThread({ messages, staggerDelay = 0 }: ChatThreadProps) {
-  const [typingMessages, setTypingMessages] = useState<Map<string, TypingMessage>>(new Map());
-  const [visibleMessageCount, setVisibleMessageCount] = useState<number>(staggerDelay > 0 ? 0 : messages.length);
-  const [completedMessages, setCompletedMessages] = useState<Set<string>>(new Set());
-
-  // 순차 표시 효과 - 각 메시지가 완료된 후 다음 메시지 표시
+  // 메시지가 변경되면 첫 메시지부터 시작
   useEffect(() => {
-    if (staggerDelay > 0 && messages.length > 0) {
-      setVisibleMessageCount(1); // 첫 메시지부터 표시
-      setCompletedMessages(new Set());
-      setTypingMessages(new Map());
+    if (messages.length > 0) {
+      setVisibleMessageCount(1); // 첫 메시지 표시
     } else {
-      setVisibleMessageCount(messages.length);
+      setVisibleMessageCount(0);
     }
-  }, [messages.length, staggerDelay]);
+  }, [messages.length]);
 
+  // 1초 간격으로 다음 메시지 표시
   useEffect(() => {
-    if (staggerDelay === 0) {
-      // staggerDelay가 0이면 모든 메시지에 타이핑 애니메이션 적용 (기존 로직)
-      const intervals: NodeJS.Timeout[] = [];
+    if (visibleMessageCount < messages.length) {
+      const timeout = setTimeout(() => {
+        setVisibleMessageCount(prev => prev + 1);
+      }, staggerDelay);
       
-      messages.forEach((message) => {
-        if (message.type === 'answer') {
-          // 이미 타이핑이 시작되었는지 확인
-          const existingTyping = typingMessages.get(message.id);
-          if (existingTyping && existingTyping.isComplete) {
-            return; // 이미 완료된 메시지는 스킵
-          }
-          
-          if (!existingTyping || existingTyping.displayedText === '') {
-            const fullText = message.content;
-            
-            // 타이핑 상태 초기화
-            setTypingMessages((prev) => {
-              const newMap = new Map(prev);
-              newMap.set(message.id, {
-                id: message.id,
-                displayedText: '',
-                fullText,
-                isComplete: false,
-              });
-              return newMap;
-            });
-
-            let currentIndex = 0;
-            const typingInterval = setInterval(() => {
-              setTypingMessages((prev) => {
-                const newMap = new Map(prev);
-                const typingMsg = newMap.get(message.id);
-                if (!typingMsg) {
-                  clearInterval(typingInterval);
-                  return prev;
-                }
-
-                if (currentIndex < fullText.length) {
-                  currentIndex += 1;
-                  newMap.set(message.id, {
-                    ...typingMsg,
-                    displayedText: fullText.substring(0, currentIndex),
-                  });
-                } else {
-                  newMap.set(message.id, {
-                    ...typingMsg,
-                    displayedText: fullText,
-                    isComplete: true,
-                  });
-                  clearInterval(typingInterval);
-                }
-                return newMap;
-              });
-            }, 120);
-            
-            intervals.push(typingInterval);
-          }
-        }
-      });
-      
-      // cleanup 함수
-      return () => {
-        intervals.forEach(interval => clearInterval(interval));
-      };
+      return () => clearTimeout(timeout);
     }
-
-    // staggerDelay가 있으면 순차 표시
-    const visibleMessages = messages.slice(0, visibleMessageCount);
-    const lastMessage = visibleMessages[visibleMessages.length - 1];
-    
-    if (!lastMessage) return;
-
-    // 마지막 메시지가 answer 타입이고 타이핑이 완료되지 않았으면 타이핑 시작
-    if (lastMessage.type === 'answer' && !typingMessages.has(lastMessage.id)) {
-      const fullText = lastMessage.content;
-      setTypingMessages((prev) => {
-        const newMap = new Map(prev);
-        newMap.set(lastMessage.id, {
-          id: lastMessage.id,
-          displayedText: '',
-          fullText,
-          isComplete: false,
-        });
-        return newMap;
-      });
-
-      let currentIndex = 0;
-      const typingInterval = setInterval(() => {
-        setTypingMessages((prev) => {
-          const newMap = new Map(prev);
-          const typingMsg = newMap.get(lastMessage.id);
-          if (!typingMsg) {
-            clearInterval(typingInterval);
-            return prev;
-          }
-
-          if (currentIndex < fullText.length) {
-            currentIndex += 1;
-            newMap.set(lastMessage.id, {
-              ...typingMsg,
-              displayedText: fullText.substring(0, currentIndex),
-            });
-          } else {
-            newMap.set(lastMessage.id, {
-              ...typingMsg,
-              displayedText: fullText,
-              isComplete: true,
-            });
-            clearInterval(typingInterval);
-            
-            // 타이핑 완료 후 staggerDelay 시간 후 다음 메시지 표시
-            setTimeout(() => {
-              if (visibleMessageCount < messages.length) {
-                setVisibleMessageCount(prev => prev + 1);
-              }
-            }, staggerDelay);
-          }
-          return newMap;
-        });
-      }, 120);
-    } else if (lastMessage.type !== 'answer') {
-      // AI 메시지나 이미지 메시지는 즉시 완료 처리 후 다음 메시지 표시
-      if (!completedMessages.has(lastMessage.id)) {
-        setCompletedMessages((prev) => {
-          const newSet = new Set(prev);
-          newSet.add(lastMessage.id);
-          return newSet;
-        });
-        
-        const timeout = setTimeout(() => {
-          if (visibleMessageCount < messages.length) {
-            setVisibleMessageCount(prev => prev + 1);
-          }
-        }, staggerDelay);
-        
-        return () => clearTimeout(timeout);
-      }
-    } else if (lastMessage.type === 'answer') {
-      // answer 타입이고 타이핑이 완료되었으면 다음 메시지 표시
-      const typingMsg = typingMessages.get(lastMessage.id);
-      if (typingMsg?.isComplete && !completedMessages.has(lastMessage.id)) {
-        setCompletedMessages((prev) => {
-          const newSet = new Set(prev);
-          newSet.add(lastMessage.id);
-          return newSet;
-        });
-        
-        const timeout = setTimeout(() => {
-          if (visibleMessageCount < messages.length) {
-            setVisibleMessageCount(prev => prev + 1);
-          }
-        }, staggerDelay);
-        
-        return () => clearTimeout(timeout);
-      }
-    }
-  }, [messages, visibleMessageCount, staggerDelay, completedMessages]);
+  }, [visibleMessageCount, messages.length, staggerDelay]);
 
   const visibleMessages = messages.slice(0, visibleMessageCount);
 
   return (
     <div className="space-y-4 pb-4">
       {visibleMessages.map((message) => {
-        const typingMsg = typingMessages.get(message.id);
-        const displayText = 
-          message.type === 'answer' && typingMsg 
-            ? typingMsg.displayedText || '' 
-            : message.content;
-
         return (
           <div
             key={message.id}
@@ -266,16 +101,7 @@ export default function ChatThread({ messages, staggerDelay = 0 }: ChatThreadPro
                     return parts.length > 0 ? parts : text;
                   };
                   
-                  const formattedText = formatTextWithHashtags(displayText);
-                  
-                  return (
-                    <>
-                      {formattedText}
-                      {message.type === 'answer' && typingMsg && !typingMsg.isComplete && (
-                        <span className="inline-block w-0.5 h-4 bg-current ml-0.5 animate-pulse">|</span>
-                      )}
-                    </>
-                  );
+                  return formatTextWithHashtags(message.content);
                 })()}
               </p>
             </div>
