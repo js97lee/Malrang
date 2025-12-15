@@ -9,6 +9,7 @@ import ArchiveList from '@/components/archive/ArchiveList';
 import ArchiveFilters from '@/components/archive/ArchiveFilters';
 import ArchiveKeywordGroups from '@/components/archive/ArchiveKeywordGroups';
 import VisualBoard from '@/components/archive/VisualBoard';
+import EmotionFlowChart from '@/components/report/EmotionFlowChart';
 import { Record } from '@/lib/types';
 import mockRecords from '@/data/mockRecords.json';
 import { getAllConversations, conversationToRecord } from '@/lib/utils/conversationStorage';
@@ -182,6 +183,18 @@ export default function ArchivePage() {
           )}
           {viewMode === 'calendar' && (
             <VisualBoard records={filteredRecords} viewMode="calendar" onRecordClick={handleRecordClick} />
+          )}
+
+          {/* 감정 흐름 섹션 - 리스트 뷰에서만 표시 */}
+          {viewMode === 'list' && (
+            <div className="mt-6">
+              <EmotionFlowChart 
+                records={records} 
+                days={0} 
+                showRepeatingThoughts={false} 
+                currentMonth={new Date().toISOString().substring(0, 7)}
+              />
+            </div>
           )}
           
           {/* 이미지 확대 팝업 - MobileFrame 전체 덮기 */}

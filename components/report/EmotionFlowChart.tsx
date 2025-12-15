@@ -12,7 +12,7 @@ interface EmotionFlowChartProps {
 }
 
 const emotionColors: { [key in Emotion]: string } = {
-  joy: '#FBBF24', // 노랑
+  joy: '#EC4899', // 핑크
   sadness: '#3B82F6', // 파랑
   anger: '#F97316', // 주황
   fear: '#1F2937', // 검정
@@ -106,21 +106,106 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
 
-  // 주간별로 그룹화
+  // 지난달 데이터 계산 (currentMonth가 있을 때만)
+  let lastMonthData: { [weekKey: string]: { [emotion: string]: number } } = {};
+  let lastMonthRecords: Record[] = [];
+  
+  if (currentMonth) {
+    const currentDate = new Date(currentMonth + '-01');
+    const lastMonthDate = new Date(currentDate);
+    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
+    const lastMonthStr = lastMonthDate.toISOString().substring(0, 7); // YYYY-MM
+    
+    // 지난달 기록 필터링
+    lastMonthRecords = records.filter(record => {
+      if (!record.date) return false;
+      const recordDate = new Date(record.date);
+      if (isNaN(recordDate.getTime())) return false;
+      const recordMonth = recordDate.toISOString().substring(0, 7);
+      return recordMonth === lastMonthStr;
+    });
+    
+    // 지난달 날짜별 감정 집계
+    const lastMonthEmotionByDate: { [date: string]: { [emotion: string]: number } } = {};
+    lastMonthRecords.forEach(record => {
+      const dateKey = record.date;
+      if (!lastMonthEmotionByDate[dateKey]) {
+        lastMonthEmotionByDate[dateKey] = {};
+      }
+      record.emotions.forEach(emotion => {
+        lastMonthEmotionByDate[dateKey][emotion] = (lastMonthEmotionByDate[dateKey][emotion] || 0) + 1;
+      });
+    });
+    
+    // 지난달 주간별로 그룹화
+    Object.keys(lastMonthEmotionByDate).forEach(date => {
+      const dateObj = new Date(date);
+      const dayOfWeek = dateObj.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = new Date(dateObj);
+      monday.setDate(dateObj.getDate() + mondayOffset);
+      monday.setHours(0, 0, 0, 0);
+      
+      // 주차 키: 주차 번호만 (같은 주차를 비교하기 위해)
+      // 월의 첫 번째 날을 기준으로 주차 계산
+      const firstDayOfMonth = new Date(monday.getFullYear(), monday.getMonth(), 1);
+      const firstMonday = new Date(firstDayOfMonth);
+      const firstDayOfWeek = firstDayOfMonth.getDay();
+      const daysToFirstMonday = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+      firstMonday.setDate(firstDayOfMonth.getDate() + daysToFirstMonday);
+      
+      const daysDiff = Math.floor((monday.getTime() - firstMonday.getTime()) / (1000 * 60 * 60 * 24));
+      const weekOfMonth = Math.floor(daysDiff / 7) + 1;
+      const weekKey = `week-${weekOfMonth}`;
+      
+      if (!lastMonthData[weekKey]) {
+        lastMonthData[weekKey] = {};
+      }
+      
+      Object.keys(lastMonthEmotionByDate[date] || {}).forEach(emotion => {
+        lastMonthData[weekKey][emotion] = (lastMonthData[weekKey][emotion] || 0) + (lastMonthEmotionByDate[date][emotion] || 0);
+      });
+    });
+  }
+
+  // 이번달 주간별로 그룹화 (주차 번호 기준)
   const weeklyData: { [weekKey: string]: { [emotion: string]: number } } = {};
+  const weekLabels: { [weekKey: string]: string } = {}; // 주차 레이블 저장
   
   dates.forEach(date => {
     const dateObj = new Date(date);
     const dayOfWeek = dateObj.getDay(); // 0=일요일, 1=월요일, ..., 6=토요일
     
     // 해당 주의 월요일 계산
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // 일요일이면 -6일, 아니면 월요일까지의 오프셋
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     const monday = new Date(dateObj);
     monday.setDate(dateObj.getDate() + mondayOffset);
     monday.setHours(0, 0, 0, 0);
     
-    // 주 키: YYYY-MM-DD (월요일 날짜)
-    const weekKey = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+    // 주차 번호 계산 (같은 주차를 비교하기 위해)
+    // 월의 첫 번째 날을 기준으로 주차 계산
+    const firstDayOfMonth = new Date(monday.getFullYear(), monday.getMonth(), 1);
+    const firstMonday = new Date(firstDayOfMonth);
+    const firstDayOfWeek = firstDayOfMonth.getDay();
+    const daysToFirstMonday = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+    firstMonday.setDate(firstDayOfMonth.getDate() + daysToFirstMonday);
+    
+    const daysDiff = Math.floor((monday.getTime() - firstMonday.getTime()) / (1000 * 60 * 60 * 24));
+    const weekOfMonth = Math.floor(daysDiff / 7) + 1;
+    const weekKey = `week-${weekOfMonth}`;
+    
+    // 레이블 저장 (첫 번째 날짜 기준)
+    if (!weekLabels[weekKey]) {
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const monthNum = monday.getMonth() + 1;
+      const dayNum = monday.getDate();
+      if (monday.getMonth() === sunday.getMonth()) {
+        weekLabels[weekKey] = `${monthNum}/${dayNum}~${sunday.getDate()}`;
+      } else {
+        weekLabels[weekKey] = `${monthNum}/${dayNum}~${sunday.getMonth() + 1}/${sunday.getDate()}`;
+      }
+    }
     
     if (!weeklyData[weekKey]) {
       weeklyData[weekKey] = {};
@@ -185,8 +270,8 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
         <h3 className="font-bold text-gray-900 mb-4">감정 흐름</h3>
         {records.length > 0 && emotionList.length > 0 && weeks.length > 0 ? (
           <div className="space-y-4">
-            <div className="relative overflow-x-auto" style={{ height: `${chartHeight}px`, width: '100%' }}>
-              <svg width={Math.max(chartWidth, 500)} height={chartHeight} viewBox={`0 0 ${Math.max(chartWidth, 500)} ${chartHeight}`} preserveAspectRatio="xMidYMid meet">
+            <div className="relative" style={{ height: `${chartHeight}px`, width: '100%', overflow: 'hidden' }}>
+              <svg width="100%" height={chartHeight} viewBox={`0 0 ${Math.max(chartWidth, 500)} ${chartHeight}`} preserveAspectRatio="xMidYMid meet">
                 {/* 그리드 라인 */}
                 {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
                   const y = padding + (chartHeight - padding * 2) * (1 - ratio);
@@ -204,32 +289,65 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
                   );
                 })}
 
-                {/* 각 주별 막대 그래프 (감정별로 쌓기) */}
+                {/* 각 주별 막대 그래프 - 지난달(배경) + 이번달(앞) */}
                 {weeks.map((week, weekIdx) => {
                   const x = getX(weekIdx);
-                  let currentY = chartHeight - padding;
-                  const weekEmotions = emotionList.filter(emotion => (weeklyData[week][emotion] || 0) > 0);
                   
                   return (
                     <g key={week}>
-                      {weekEmotions.map((emotion) => {
-                        const value = weeklyData[week][emotion] || 0;
-                        const barHeight = (value / weeklyMaxValue) * (chartHeight - padding * 2);
-                        const y = currentY - barHeight;
-                        currentY = y;
+                      {/* 지난달 데이터 (오퍼시티 낮게, 배경) */}
+                      {currentMonth && lastMonthData[week] && (() => {
+                        let lastMonthY = chartHeight - padding;
+                        const lastMonthEmotions = emotionList.filter(emotion => (lastMonthData[week][emotion] || 0) > 0);
+                        const lastMonthTotal = Object.values(lastMonthData[week]).reduce((sum, count) => sum + count, 0);
+                        const lastMonthMaxValue = Math.max(lastMonthTotal, weeklyMaxValue);
                         
-                        return (
-                          <rect
-                            key={emotion}
-                            x={x}
-                            y={y}
-                            width={barWidth}
-                            height={barHeight}
-                            fill={emotionColors[emotion] || '#9CA3AF'}
-                            rx="2"
-                          />
-                        );
-                      })}
+                        return lastMonthEmotions.map((emotion) => {
+                          const value = lastMonthData[week][emotion] || 0;
+                          const barHeight = (value / lastMonthMaxValue) * (chartHeight - padding * 2);
+                          const y = lastMonthY - barHeight;
+                          lastMonthY = y;
+                          
+                          return (
+                            <rect
+                              key={`last-${emotion}`}
+                              x={x}
+                              y={y}
+                              width={barWidth}
+                              height={barHeight}
+                              fill={emotionColors[emotion] || '#9CA3AF'}
+                              opacity="0.3"
+                              rx="2"
+                            />
+                          );
+                        });
+                      })()}
+                      
+                      {/* 이번달 데이터 (진한 색상, 앞) */}
+                      {(() => {
+                        let currentY = chartHeight - padding;
+                        const weekEmotions = emotionList.filter(emotion => (weeklyData[week][emotion] || 0) > 0);
+                        
+                        return weekEmotions.map((emotion) => {
+                          const value = weeklyData[week][emotion] || 0;
+                          const barHeight = (value / weeklyMaxValue) * (chartHeight - padding * 2);
+                          const y = currentY - barHeight;
+                          currentY = y;
+                          
+                          return (
+                            <rect
+                              key={`current-${emotion}`}
+                              x={x}
+                              y={y}
+                              width={barWidth}
+                              height={barHeight}
+                              fill={emotionColors[emotion] || '#9CA3AF'}
+                              opacity="1"
+                              rx="2"
+                            />
+                          );
+                        });
+                      })()}
                     </g>
                   );
                 })}
@@ -246,7 +364,7 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
                       fontSize="10"
                       fill="#6B7280"
                     >
-                      {getWeekLabel(week)}
+                      {weekLabels[week] || week}
                     </text>
                   );
                 })}
@@ -289,6 +407,152 @@ export default function EmotionFlowChart({ records, days = 30, showEmotionFlow =
             )}
           </div>
         )}
+        
+        {/* 곡선 그래프 추가 - 주차별 */}
+        {records.length > 0 && emotionList.length > 0 && weeks.length > 0 && weeklyMaxValue > 0 && (
+          <div className="mt-6 pt-6 border-t border-gray-300">
+            <h4 className="font-semibold text-gray-900 mb-4 text-sm">감정 변화 추이</h4>
+            {(() => {
+              try {
+                // 곡선 그래프용 너비 계산 (weeks 기반, 스크롤 없이)
+                const lineChartWidth = Math.max(500, weeks.length * 60);
+                const lineChartPadding = 50;
+                
+                return (
+                  <div className="relative" style={{ height: `${chartHeight}px`, width: '100%', overflow: 'hidden' }}>
+                    <svg width="100%" height={chartHeight} viewBox={`0 0 ${lineChartWidth} ${chartHeight}`} preserveAspectRatio="xMidYMid meet">
+                      {/* 그리드 라인 */}
+                      {[0, 0.25, 0.5, 0.75, 1].map(ratio => {
+                        const y = lineChartPadding + (chartHeight - lineChartPadding * 2) * (1 - ratio);
+                        return (
+                          <line
+                            key={ratio}
+                            x1={lineChartPadding}
+                            y1={y}
+                            x2={lineChartWidth - lineChartPadding}
+                            y2={y}
+                            stroke="#E5E7EB"
+                            strokeWidth="1"
+                            strokeDasharray="4 4"
+                          />
+                        );
+                      })}
+
+                      {/* 각 감정별 곡선 그래프 (주차별) */}
+                      {emotionList.map((emotion) => {
+                        const points: { x: number; y: number }[] = [];
+                        
+                        weeks.forEach((week, weekIdx) => {
+                          const weekData = weeklyData[week];
+                          if (!weekData) return;
+                          
+                          const value = weekData[emotion] || 0;
+                          const x = getX(weekIdx) + (barWidth / 2); // 막대 그래프와 동일한 X 위치
+                          const y = lineChartPadding + (chartHeight - lineChartPadding * 2) * (1 - (value / Math.max(weeklyMaxValue, 1)));
+                          points.push({ x, y });
+                        });
+
+                        if (points.length === 0) return null;
+
+                        // 곡선 경로 생성 (부드러운 곡선을 위한 베지어 곡선)
+                        let pathData = '';
+                        if (points.length === 1) {
+                          pathData = `M ${points[0].x} ${points[0].y}`;
+                        } else {
+                          pathData = `M ${points[0].x} ${points[0].y}`;
+                          for (let i = 0; i < points.length - 1; i++) {
+                            const current = points[i];
+                            const next = points[i + 1];
+                            const cp1x = current.x + (next.x - current.x) / 3;
+                            const cp1y = current.y;
+                            const cp2x = next.x - (next.x - current.x) / 3;
+                            const cp2y = next.y;
+                            pathData += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} ${next.y}`;
+                          }
+                        }
+
+                        return (
+                          <g key={emotion}>
+                            <path
+                              d={pathData}
+                              fill="none"
+                              stroke={emotionColors[emotion] || '#9CA3AF'}
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            {/* 데이터 포인트 */}
+                            {points.map((point, idx) => (
+                              <circle
+                                key={idx}
+                                cx={point.x}
+                                cy={point.y}
+                                r="4"
+                                fill={emotionColors[emotion] || '#9CA3AF'}
+                                stroke="white"
+                                strokeWidth="2"
+                              />
+                            ))}
+                          </g>
+                        );
+                      })}
+
+                      {/* X축 주차 레이블 */}
+                      {weeks.map((week, idx) => {
+                        const x = getX(idx) + (barWidth / 2);
+                        return (
+                          <text
+                            key={week}
+                            x={x}
+                            y={chartHeight - 10}
+                            textAnchor="middle"
+                            fontSize="10"
+                            fill="#6B7280"
+                          >
+                            {getWeekLabel(week)}
+                          </text>
+                        );
+                      })}
+
+                      {/* Y축 레이블 */}
+                      <text
+                        x={15}
+                        y={chartHeight / 2}
+                        textAnchor="middle"
+                        fontSize="10"
+                        fill="#6B7280"
+                        transform={`rotate(-90, 15, ${chartHeight / 2})`}
+                      >
+                        감정 횟수
+                      </text>
+                    </svg>
+                  </div>
+                );
+              } catch (error) {
+                console.error('곡선 그래프 렌더링 오류:', error);
+                return (
+                  <div className="text-gray-500 text-sm text-center py-4">
+                    그래프를 표시할 수 없습니다.
+                  </div>
+                );
+              }
+            })()}
+
+            {/* 범례 (기존과 동일) */}
+            <div className="flex flex-wrap gap-3 justify-center mt-4">
+              {emotionList.map(emotion => (
+                <div key={emotion} className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: emotionColors[emotion] || '#9CA3AF' }}
+                  />
+                  <span className="text-xs text-gray-700">{emotionLabels[emotion]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <div className="mt-6 pt-4 border-t border-gray-300"></div>
       </div>
       )}

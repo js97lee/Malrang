@@ -30,7 +30,7 @@ const scenarios = [
         },
       },
       {
-        delay: 8000,
+        delay: 1000,
         message: {
           id: '3',
           type: 'question' as const,
@@ -48,7 +48,7 @@ const scenarios = [
         },
       },
       {
-        delay: 10400,
+        delay: 1000,
         message: {
           id: '4-1',
           type: 'image' as const,
@@ -86,7 +86,7 @@ const scenarios = [
         },
       },
       {
-        delay: 5600,
+        delay: 1000,
         message: {
           id: '7',
           type: 'question' as const,
@@ -111,8 +111,7 @@ const scenarios = [
         },
       },
       {
-        // 메시지 2 타이핑 시간: 약 30자 * 120ms = 3600ms + 2초 = 5600ms
-        delay: 5600,
+        delay: 1000,
         message: {
           id: '3',
           type: 'question' as const,
@@ -130,8 +129,7 @@ const scenarios = [
         },
       },
       {
-        // 메시지 4 타이핑 시간: 약 30자 * 120ms = 3600ms + 2초 = 5600ms
-        delay: 5600,
+        delay: 1000,
         message: {
           id: '4-1',
           type: 'image' as const,
@@ -169,8 +167,7 @@ const scenarios = [
         },
       },
       {
-        // 메시지 6 타이핑 시간: 약 60자 * 120ms = 7200ms + 2초 = 9200ms
-        delay: 9200,
+        delay: 1000,
         message: {
           id: '7',
           type: 'question' as const,
@@ -188,8 +185,7 @@ const scenarios = [
         },
       },
       {
-        // 메시지 8 타이핑 시간: 약 60자 * 120ms = 7200ms + 2초 = 9200ms
-        delay: 9200,
+        delay: 1000,
         message: {
           id: '9',
           type: 'question' as const,
@@ -207,8 +203,7 @@ const scenarios = [
         },
       },
       {
-        // 메시지 10 타이핑 시간: 약 20자 * 120ms = 2400ms + 2초 = 4400ms
-        delay: 4400,
+        delay: 1000,
         message: {
           id: '11',
           type: 'question' as const,
@@ -220,7 +215,7 @@ const scenarios = [
   },
   {
     id: 'example1-2',
-    name: '예시1-2',
+    name: '예시3',
     question: '', // 사용자가 먼저 사진을 첨부하므로 초기 질문 없음
     steps: [
       {
@@ -319,7 +314,7 @@ const scenarios = [
   },
   {
     id: 'example2-2',
-    name: '예시2-2',
+    name: '예시4',
     question: '', // 사용자가 먼저 사진을 첨부하므로 초기 질문 없음
     steps: [
       {
@@ -784,7 +779,7 @@ function RecordPageContent() {
         <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide px-4 pb-6 relative">
           
           <div className="relative pb-20">
-            <ChatThread messages={messages} staggerDelay={1000} />
+            <ChatThread messages={messages} staggerDelay={500} />
             
             {/* 리포트 준비 완료 플로팅 버튼 */}
             {showReportPrompt && (

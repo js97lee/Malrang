@@ -11,17 +11,28 @@ interface ChatThreadProps {
 
 export default function ChatThread({ messages, staggerDelay = 1000 }: ChatThreadProps) {
   const [visibleMessageCount, setVisibleMessageCount] = useState<number>(0);
+  const [firstMessageId, setFirstMessageId] = useState<string | null>(null);
 
-  // 메시지가 변경되면 첫 메시지부터 시작
+  // 첫 메시지 ID를 추적하여 완전히 새로운 시나리오인지 확인
   useEffect(() => {
-    if (messages.length > 0) {
-      setVisibleMessageCount(1); // 첫 메시지 표시
-    } else {
+    if (messages.length === 0) {
       setVisibleMessageCount(0);
+      setFirstMessageId(null);
+    } else {
+      const currentFirstId = messages[0]?.id;
+      // 첫 메시지 ID가 변경되면 새 시나리오 시작
+      if (currentFirstId !== firstMessageId) {
+        setFirstMessageId(currentFirstId);
+        setVisibleMessageCount(1); // 첫 메시지 표시
+      }
+      // 메시지가 추가되었지만 첫 메시지가 같으면 카운트만 업데이트 (리렌더링 방지)
+      else if (visibleMessageCount === 0 && messages.length > 0) {
+        setVisibleMessageCount(1);
+      }
     }
-  }, [messages.length]);
+  }, [messages, firstMessageId, visibleMessageCount]);
 
-  // 1초 간격으로 다음 메시지 표시
+  // 3초 간격으로 다음 메시지 표시
   useEffect(() => {
     if (visibleMessageCount < messages.length) {
       const timeout = setTimeout(() => {

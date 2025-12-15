@@ -33,6 +33,11 @@ function PreviewPageContent() {
   const [isGenerating, setIsGenerating] = useState(true);
   const [video, setVideo] = useState<{ src: string; thumbnail: string } | null>(null);
   const [showVideoPopup, setShowVideoPopup] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [scheduleMessage, setScheduleMessage] = useState('');
 
   useEffect(() => {
     const found = (templatesData as RefeelTemplate[]).find((t) => t.id === templateId);
@@ -54,6 +59,47 @@ function PreviewPageContent() {
   const handleSubmit = () => {
     router.push('/refeel/submit');
   };
+
+  const handleSchedule = () => {
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleConfirm = () => {
+    if (!scheduleDate || !scheduleTime) {
+      alert('날짜와 시간을 선택해주세요.');
+      return;
+    }
+    if (selectedRecipients.length === 0) {
+      alert('수신자를 선택해주세요.');
+      return;
+    }
+    
+    // 예약발송 저장 로직 (추후 구현)
+    alert(`예약발송이 설정되었습니다.\n날짜: ${scheduleDate}\n시간: ${scheduleTime}\n수신자: ${selectedRecipients.join(', ')}`);
+    setShowScheduleModal(false);
+    // 상태 초기화
+    setScheduleDate('');
+    setScheduleTime('');
+    setSelectedRecipients([]);
+    setScheduleMessage('');
+  };
+
+  const toggleRecipient = (recipient: string) => {
+    setSelectedRecipients(prev => 
+      prev.includes(recipient) 
+        ? prev.filter(r => r !== recipient)
+        : [...prev, recipient]
+    );
+  };
+
+  // 오늘 날짜를 기본값으로 설정
+  useEffect(() => {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    const timeStr = '09:00';
+    setScheduleDate(dateStr);
+    setScheduleTime(timeStr);
+  }, []);
 
   if (!template) {
     return (
@@ -89,7 +135,12 @@ function PreviewPageContent() {
               ← 뒤로
             </button>
             <h1 className="text-lg font-semibold">미리보기</h1>
-            <div className="w-8" />
+            <button
+              onClick={handleSubmit}
+              className="text-primary-500 font-bold hover:text-primary-600 transition-colors"
+            >
+              완료
+            </button>
           </div>
         </header>
 
@@ -134,6 +185,7 @@ function PreviewPageContent() {
                   }
                 }
               }}
+              onSchedule={handleSchedule}
             />
             
             {/* 비디오 팝업 - 화이트 섹션 내에서만 표시 */}
@@ -162,13 +214,118 @@ function PreviewPageContent() {
               </div>
             )}
           </div>
-
-          <div className="mt-2 pb-6 px-4">
-            <Button onClick={handleSubmit} className="w-full" variant="primary">
-              완료
-            </Button>
-          </div>
         </div>
+
+        {/* 예약발송 모달 */}
+        {showScheduleModal && (
+          <div 
+            className="absolute inset-0 bg-black/50 flex items-center justify-center z-[100] p-4"
+            onClick={() => setShowScheduleModal(false)}
+          >
+            <div 
+              className="bg-white rounded-material-md w-full max-w-md max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">예약발송 설정</h2>
+                  <button
+                    onClick={() => setShowScheduleModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {/* 날짜 선택 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      발송 날짜
+                    </label>
+                    <input
+                      type="date"
+                      value={scheduleDate}
+                      onChange={(e) => setScheduleDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+
+                  {/* 시간 선택 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      발송 시간
+                    </label>
+                    <input
+                      type="time"
+                      value={scheduleTime}
+                      onChange={(e) => setScheduleTime(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+
+                  {/* 수신자 선택 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      수신자 선택
+                    </label>
+                    <div className="space-y-2">
+                      {['가족', '친구', '동료', '지인'].map((recipient) => (
+                        <label
+                          key={recipient}
+                          className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedRecipients.includes(recipient)}
+                            onChange={() => toggleRecipient(recipient)}
+                            className="w-5 h-5 text-primary-500 border-gray-300 rounded focus:ring-primary-500"
+                          />
+                          <span className="ml-3 text-gray-700">{recipient}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 메시지 작성 (선택사항) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      메시지 (선택사항)
+                    </label>
+                    <textarea
+                      value={scheduleMessage}
+                      onChange={(e) => setScheduleMessage(e.target.value)}
+                      placeholder="영상과 함께 전달할 메시지를 입력하세요..."
+                      rows={4}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* 버튼 */}
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    onClick={() => setShowScheduleModal(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    취소
+                  </Button>
+                  <Button
+                    onClick={handleScheduleConfirm}
+                    variant="primary"
+                    className="flex-1"
+                  >
+                    예약하기
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </MobileFrame>
   );
