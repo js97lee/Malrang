@@ -16,7 +16,7 @@ import { Record } from '@/lib/types';
 import Tag from '@/components/ui/Tag';
 
 const emotionColors: { [key: string]: string } = {
-  joy: '#FBBF24', // 노랑
+  joy: '#C84470', // 핑크
   sadness: '#3B82F6', // 파랑
   anger: '#F97316', // 주황
   fear: '#1F2937', // 검정
@@ -170,12 +170,6 @@ export default function ReportPage() {
             </div>
           )}
 
-          {/* 나의 감정 기록 노트 */}
-          <EmotionNotebook records={allRecords} />
-
-          {/* 감정 흐름 */}
-          <EmotionFlowChart records={allRecords} days={365} showRepeatingThoughts={false} currentMonth={currentMonth} />
-
           {/* 키워드 */}
           <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200" style={{ boxShadow: 'none' }}>
             <h3 className="font-bold text-gray-900 mb-4">이달의 키워드</h3>
@@ -190,6 +184,12 @@ export default function ReportPage() {
               ))}
             </div>
           </div>
+
+          {/* 나의 감정 기록 노트 */}
+          <EmotionNotebook records={allRecords} />
+
+          {/* 감정 흐름 */}
+          <EmotionFlowChart records={allRecords} days={365} showRepeatingThoughts={false} currentMonth={currentMonth} />
 
           {/* 하이라이트 */}
           {todayHighlight ? (

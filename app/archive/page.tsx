@@ -190,9 +190,8 @@ export default function ArchivePage() {
             <div className="mt-6">
               <EmotionFlowChart 
                 records={records} 
-                days={0} 
+                days={365} 
                 showRepeatingThoughts={false} 
-                currentMonth={new Date().toISOString().substring(0, 7)}
               />
             </div>
           )}

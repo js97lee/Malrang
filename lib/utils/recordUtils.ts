@@ -7,30 +7,35 @@ import { Record } from '@/lib/types';
  * @param useIndex - true면 index 기반으로 순차 할당, false면 record.id 기반으로 할당
  */
 export function getRecordImage(record: Record, index: number, useIndex: boolean = false): { imageUrl: string; hasValidImage: boolean } {
-  // card1-29까지 순환
+  // card1-44까지 순환
+  const maxCardIndex = 44;
   let cardIndex: number;
   
   if (useIndex) {
     // 인덱스 기반으로 순차 할당 (아카이브 갤러리용)
-    cardIndex = (index % 29) + 1;
+    cardIndex = (index % maxCardIndex) + 1;
   } else {
     // 레코드 ID 기반으로 고유한 카드 인덱스 생성 (기본값)
     const recordId = parseInt(record.id) || 0;
-    cardIndex = ((recordId - 1) % 29) + 1;
+    cardIndex = ((recordId - 1) % maxCardIndex) + 1;
   }
   
-  // 확장자 규칙: card1-7, card19-21은 .png, card8-18, card22-29는 .jpeg
-  const defaultImage = (cardIndex <= 7 || (cardIndex >= 19 && cardIndex <= 21))
+  // 확장자 규칙: 
+  // card1-7, card18-21: .png
+  // card8-17, card22-44: .jpeg
+  const defaultImage = (cardIndex <= 7 || (cardIndex >= 18 && cardIndex <= 21))
     ? `/card${cardIndex}.png`
     : `/card${cardIndex}.jpeg`;
   
-  // record.images 배열에서 유효한 이미지 URL 찾기 (기본 카드 이미지 제외)
+  // record.images 배열에서 유효한 이미지 URL 찾기
+  // 1순위: record.images에 명시적으로 지정된 이미지 (card 포함)
+  // 2순위: 외부 URL 또는 base64 이미지
+  // 3순위: defaultImage (fallback)
   const validImage = record.images?.find(img => 
     img && 
     typeof img === 'string' &&
     img.trim() !== '' && 
-    !img.startsWith('/card') && 
-    (img.startsWith('http') || img.startsWith('data:image'))
+    (img.startsWith('http') || img.startsWith('data:image') || img.startsWith('/card'))
   );
   
   const hasValidImage = !!validImage;

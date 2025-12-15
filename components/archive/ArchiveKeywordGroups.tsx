@@ -112,6 +112,11 @@ export default function ArchiveKeywordGroups({ records, onRecordClick }: Archive
                             src={imageUrl}
                             alt={record.summary || '기록'}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              // fallback 이미지로 변경
+                              target.src = '/card1.png';
+                            }}
                           />
                           <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors" />
                           <div className="absolute top-2 right-2">

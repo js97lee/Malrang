@@ -39,7 +39,8 @@ export default function HighlightMoment({ record }: HighlightMomentProps) {
   // 이미지 URL 찾기
   const recordIndex = allRecords.findIndex(r => r.id === foundRecord.id);
   const { imageUrl: displayImage, hasValidImage } = getRecordImage(foundRecord, recordIndex);
-  const defaultImage = displayImage; // fallback용
+  // fallback용 기본 이미지 (displayImage와 다를 수 있음)
+  const fallbackImage = hasValidImage ? '/card1.png' : displayImage;
   
   return (
     <div className="bg-gray-50 rounded-material-md p-6 border border-gray-200">
@@ -75,7 +76,13 @@ export default function HighlightMoment({ record }: HighlightMomentProps) {
               className="absolute z-10 inset-0 w-full h-full object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = defaultImage;
+                // fallback 이미지로 변경
+                if (target.src !== fallbackImage) {
+                  target.src = fallbackImage;
+                } else {
+                  // 최종 fallback도 실패하면 이미지 숨기기
+                  target.style.display = 'none';
+                }
               }}
             />
             

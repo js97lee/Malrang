@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Record, Emotion, EmotionData } from '@/lib/types';
 import EmotionDonutChart from './EmotionDonutChart';
 
@@ -9,7 +9,7 @@ interface EmotionNotebookProps {
 }
 
 const emotionColors: { [key in Emotion]: string } = {
-  joy: '#FBBF24', // 노랑
+  joy: '#C84470', // 핑크
   sadness: '#3B82F6', // 파랑
   anger: '#F97316', // 주황
   fear: '#1F2937', // 검정
@@ -31,6 +31,8 @@ const emotionLabels: { [key in Emotion]: string } = {
 };
 
 export default function EmotionNotebook({ records }: EmotionNotebookProps) {
+  const [expandedEmotions, setExpandedEmotions] = useState<Set<Emotion>>(new Set());
+  
   // 감정별 기록 수 집계
   const emotionCounts: { [key: string]: number } = {};
   records.forEach(record => {
@@ -38,6 +40,18 @@ export default function EmotionNotebook({ records }: EmotionNotebookProps) {
       emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
     });
   });
+  
+  const toggleEmotion = (emotion: Emotion) => {
+    setExpandedEmotions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(emotion)) {
+        newSet.delete(emotion);
+      } else {
+        newSet.add(emotion);
+      }
+      return newSet;
+    });
+  };
 
   // 감정별 기록 그룹화
   const recordsByEmotion: { [key: string]: Record[] } = {};
@@ -100,43 +114,59 @@ export default function EmotionNotebook({ records }: EmotionNotebookProps) {
           emotions.map(emotion => {
             const count = emotionCounts[emotion];
             const emotionRecords = recordsByEmotion[emotion] || [];
+            const isExpanded = expandedEmotions.has(emotion);
             
             return (
               <div key={emotion} className="border-l-4 pl-4" style={{ borderColor: emotionColors[emotion] }}>
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: emotionColors[emotion] }}
-                  />
-                  <h4 className="font-semibold text-gray-900">
-                    {emotionLabels[emotion]} ({count}회)
-                  </h4>
-                </div>
+                <button
+                  onClick={() => toggleEmotion(emotion)}
+                  className="flex items-center justify-between w-full mb-3 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: emotionColors[emotion] }}
+                    />
+                    <h4 className="font-semibold text-gray-900">
+                      {emotionLabels[emotion]} ({count}회)
+                    </h4>
+                  </div>
+                  <svg
+                    className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
                 
-                <div className="space-y-2 ml-7">
-                  {emotionRecords.slice(0, 3).map(record => (
-                    <div key={record.id} className="text-sm text-gray-700">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs text-gray-500">
-                          {new Date(record.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
-                        </span>
-                        {record.tags.length > 0 && (
-                          <span className="text-xs text-gray-400">
-                            • {record.tags[0]}
+                {isExpanded && (
+                  <div className="space-y-2 ml-7">
+                    {emotionRecords.slice(0, 3).map(record => (
+                      <div key={record.id} className="text-sm text-gray-700">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs text-gray-500">
+                            {new Date(record.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                           </span>
-                        )}
+                          {record.tags.length > 0 && (
+                            <span className="text-xs text-gray-400">
+                              • {record.tags[0]}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-800 line-clamp-2">
+                          {record.summary || record.answer.substring(0, 80)}
+                        </p>
                       </div>
-                      <p className="text-gray-800 line-clamp-2">
-                        {record.summary || record.answer.substring(0, 80)}
+                    ))}
+                    {emotionRecords.length > 3 && (
+                      <p className="text-xs text-gray-500">
+                        +{emotionRecords.length - 3}개 더 보기
                       </p>
-                    </div>
-                  ))}
-                  {emotionRecords.length > 3 && (
-                    <p className="text-xs text-gray-500">
-                      +{emotionRecords.length - 3}개 더 보기
-                    </p>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })

@@ -9,7 +9,7 @@ interface EmotionTrendChartProps {
 }
 
 const emotionColors: Record<string, string> = {
-  joy: '#FBBF24', // 노랑
+  joy: '#C84470', // 핑크
   sadness: '#3B82F6', // 파랑
   anger: '#F97316', // 주황
   fear: '#1F2937', // 검정
