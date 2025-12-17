@@ -14,12 +14,27 @@ interface VisualBoardProps {
 export default function VisualBoard({ records, viewMode = 'calendar', onRecordClick }: VisualBoardProps) {
   // records prop을 직접 사용 (필터링된 records)
   const sortedRecords = useMemo(() => {
+    // 날짜순 정렬 (오래된 것이 앞에)
     const sorted = [...records].sort((a, b) => {
       const dateA = new Date(a.date).getTime();
       const dateB = new Date(b.date).getTime();
-      return dateB - dateA; // 최신순 정렬
+      return dateA - dateB; // 오래된 것이 앞에
     });
-    return sorted;
+    
+    // 뒤쪽 카드들을 앞으로 이동 (뒤쪽 30%를 앞으로)
+    const splitIndex = Math.floor(sorted.length * 0.7);
+    const frontPart = sorted.slice(0, splitIndex);
+    const backPart = sorted.slice(splitIndex);
+    const reordered = [...backPart, ...frontPart];
+    
+    // 랜덤하게 섞기
+    const shuffled = [...reordered];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    return shuffled;
   }, [records]);
 
   return (

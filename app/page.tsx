@@ -407,10 +407,29 @@ export default function Home() {
                         onMouseUp={handleMouseUp}
                         onMouseMove={handleMouseMove}
                       >
-                        {allRecords
-                          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                          .slice(0, 10)
-                          .map((record, index) => {
+                        {(() => {
+                          // 날짜순 정렬 (오래된 것이 앞에)
+                          const sorted = [...allRecords].sort((a, b) => {
+                            const dateA = new Date(a.date).getTime();
+                            const dateB = new Date(b.date).getTime();
+                            return dateA - dateB; // 오래된 것이 앞에
+                          });
+                          
+                          // 뒤쪽 카드들을 앞으로 이동 (뒤쪽 30%를 앞으로)
+                          const splitIndex = Math.floor(sorted.length * 0.7);
+                          const frontPart = sorted.slice(0, splitIndex);
+                          const backPart = sorted.slice(splitIndex);
+                          const reordered = [...backPart, ...frontPart];
+                          
+                          // 랜덤하게 섞기 (일정한 시드 사용)
+                          const shuffled = [...reordered];
+                          for (let i = shuffled.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                          }
+                          
+                          return shuffled.slice(0, 10);
+                        })().map((record, index) => {
                             const { dayName, dayNumber } = getDateInfo(record.date);
                             const { imageUrl: defaultImage, hasValidImage } = getRecordImage(record, index);
                             const recordIsToday = isToday(record.date);
@@ -443,7 +462,7 @@ export default function Home() {
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center mt-0.5">
                         <span className="text-orange-700 text-xs font-bold">1</span>
                       </div>
-                      <p className="text-sm text-gray-700 leading-relaxed">음성과 사진으로 하루를 기록해요</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">대화,사진,영상 등으로 하루를 기록해요</p>
                     </div>
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center mt-0.5">

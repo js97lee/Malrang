@@ -28,13 +28,29 @@ export default function ArchiveKeywordGroups({ records, onRecordClick }: Archive
       });
     });
 
-    // 각 그룹을 날짜순으로 정렬 (최신순)
+    // 각 그룹을 날짜순으로 정렬하고 뒤쪽 카드를 앞으로 이동한 후 랜덤 배치
     Object.keys(groups).forEach((tag) => {
-      groups[tag].sort((a, b) => {
+      // 날짜순 정렬 (오래된 것이 앞에)
+      const sorted = groups[tag].sort((a, b) => {
         const dateA = new Date(a.date).getTime();
         const dateB = new Date(b.date).getTime();
-        return dateB - dateA;
+        return dateA - dateB; // 오래된 것이 앞에
       });
+      
+      // 뒤쪽 카드들을 앞으로 이동 (뒤쪽 30%를 앞으로)
+      const splitIndex = Math.floor(sorted.length * 0.7);
+      const frontPart = sorted.slice(0, splitIndex);
+      const backPart = sorted.slice(splitIndex);
+      const reordered = [...backPart, ...frontPart];
+      
+      // 랜덤하게 섞기
+      const shuffled = [...reordered];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      
+      groups[tag] = shuffled;
     });
 
     return groups;
