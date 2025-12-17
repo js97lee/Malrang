@@ -11,7 +11,7 @@ import templatesData from '@/data/templates.json';
 
 const videos = [
   { id: '2', src: '/Video-2.mp4', thumbnail: '/Video2-thum.png', title: 'Video 2' },
-  { id: '3', src: '/Video1-편지.mp4', thumbnail: '/Video1-thum-편지.png', title: 'Video1-편지' },
+  { id: '3', src: '/Video3.mp4', thumbnail: '/video-thum-3.png', title: 'Video1-편지' },
 ];
 
 export default function RefeelPage() {

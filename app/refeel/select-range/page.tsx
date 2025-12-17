@@ -179,9 +179,6 @@ function SelectRangePageContent() {
                 {/* 대표 태그 3개 */}
                 <div className="flex flex-wrap gap-2 mb-3">
                   {relevantTags.slice(0, 3).map((tag) => {
-                    const isDefault = template?.defaultTags?.some(dt => 
-                      tag.includes(dt) || dt.includes(tag)
-                    );
                     return (
                       <Tag
                         key={tag}
@@ -189,8 +186,6 @@ function SelectRangePageContent() {
                         className={
                           selectedTags.includes(tag)
                             ? 'bg-green-500 text-white'
-                            : isDefault
-                            ? 'bg-amber-100 text-amber-700 border border-amber-300'
                             : 'bg-green-100 text-green-700'
                         }
                       >
@@ -205,9 +200,6 @@ function SelectRangePageContent() {
                     <summary className="text-sm text-gray-600 cursor-pointer mb-2">나머지 태그 보기</summary>
                     <div className="flex flex-wrap gap-2">
                       {relevantTags.slice(3).map((tag) => {
-                        const isDefault = template?.defaultTags?.some(dt => 
-                          tag.includes(dt) || dt.includes(tag)
-                        );
                         return (
                           <Tag
                             key={tag}
@@ -215,9 +207,7 @@ function SelectRangePageContent() {
                             className={
                               selectedTags.includes(tag)
                                 ? 'bg-green-500 text-white'
-                                : isDefault
-                                ? 'bg-amber-100 text-amber-700 border border-amber-300'
-                                : 'bg-gray-100 text-gray-700'
+                                : 'bg-green-100 text-green-700'
                             }
                           >
                             {tag}
@@ -236,19 +226,19 @@ function SelectRangePageContent() {
                 {allTags.length > relevantTags.length && (
                   <details className="mt-4">
                     <summary className="text-sm text-gray-600 cursor-pointer">더보기</summary>
-                    <div className="grid grid-cols-3 gap-3 mt-3">
+                    <div className="flex flex-wrap gap-2 mt-2">
                       {allTags.filter(tag => !relevantTags.includes(tag)).map((tag) => (
-                        <button
+                        <Tag
                           key={tag}
                           onClick={() => handleTagToggle(tag)}
-                          className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
+                          className={
                             selectedTags.includes(tag)
-                              ? 'bg-green-500 text-white border-green-500'
-                              : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
-                          }`}
+                              ? 'bg-green-500 text-white'
+                              : 'bg-green-100 text-green-700'
+                          }
                         >
                           {tag}
-                        </button>
+                        </Tag>
                       ))}
                     </div>
                   </details>
@@ -393,19 +383,41 @@ function SelectRangePageContent() {
                     관련 태그가 없습니다. 모든 태그를 확인하려면 아래를 보세요.
                   </p>
                 )}
-                {/* 다른 태그들 */}
-                {allTags.length > relevantTags.length && (
-                  <details className="mt-4">
-                    <summary className="text-sm text-gray-600 cursor-pointer">모든 태그 보기</summary>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {allTags.filter(tag => !relevantTags.includes(tag)).map((tag) => (
+                {/* 개인의 자서전 추천 태그 */}
+                {template?.id === 'autobiography' && (
+                  <div className="mt-4 mb-4">
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">추천 태그</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {['유년기', '학창시절', '군대', '10대', '20대', '30대', '승진', '주마등', '추억', '부모님', '아들들', '아내', '가족', '국토순례대장정', '열정', '사랑', '결혼', '행복한우리집'].map((tag) => (
                         <Tag
                           key={tag}
                           onClick={() => handleTagToggle(tag)}
                           className={
                             selectedTags.includes(tag)
                               ? 'bg-green-500 text-white'
-                              : 'bg-gray-100 text-gray-700'
+                              : 'bg-green-100 text-green-700'
+                          }
+                        >
+                          {tag}
+                        </Tag>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* 다른 태그들 */}
+                {template?.id === 'autobiography' ? (
+                  <details className="mt-4">
+                    <summary className="text-sm text-gray-600 cursor-pointer">모든 태그 보기</summary>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {/* 개인의 자서전 태그만 표시 */}
+                      {['선택', '해병대', '하원', '하엘', '성취', '커리어', '인생', '마지막', '신앙', '교회', '은혜'].map((tag) => (
+                        <Tag
+                          key={tag}
+                          onClick={() => handleTagToggle(tag)}
+                          className={
+                            selectedTags.includes(tag)
+                              ? 'bg-green-500 text-white'
+                              : 'bg-green-100 text-green-700'
                           }
                         >
                           {tag}
@@ -413,6 +425,27 @@ function SelectRangePageContent() {
                       ))}
                     </div>
                   </details>
+                ) : (
+                  allTags.length > relevantTags.length && (
+                    <details className="mt-4">
+                      <summary className="text-sm text-gray-600 cursor-pointer">모든 태그 보기</summary>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {allTags.filter(tag => !relevantTags.includes(tag)).map((tag) => (
+                          <Tag
+                            key={tag}
+                            onClick={() => handleTagToggle(tag)}
+                            className={
+                              selectedTags.includes(tag)
+                                ? 'bg-green-500 text-white'
+                                : 'bg-green-100 text-green-700'
+                            }
+                          >
+                            {tag}
+                          </Tag>
+                        ))}
+                      </div>
+                    </details>
+                  )
                 )}
               </div>
             </>
